@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BESTR3PS</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+  <div class="logo">BESTR3PS</div>
+
+  <input
+    id="searchInput"
+    type="search"
+    placeholder="Search products or brands..."
+  >
+
+  <select id="agentSelect">
+    <option value="litbuy">LITBUY</option>
+    <option value="oopbuy">OOPBUY</option>
+    <option value="cnfans">CNFANS</option>
+    <option value="kakobuy">KAKOBUY</option>
+    <option value="hipobuy">HIPOBUY</option>
+    <option value="acbuy">ACBUY</option>
+  </select>
+</header>
+
+<nav id="categoryNav"></nav>
+
+<main>
+
+  <div class="topbar">
+    <span id="status">Loading...</span>
+    <button id="refreshBtn">Refresh</button>
+  </div>
+
+  <div id="productGrid"></div>
+
+  <div id="emptyMessage" class="empty" style="display:none;">
+    No products found.
+  </div>
+
+</main>
+
+<script src="app.js"></script>
+
+</body>
+</html>
