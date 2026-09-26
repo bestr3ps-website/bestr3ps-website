@@ -16,28 +16,22 @@ const categories = [
 let currentCategory = "ALL";
 let currentAgent = "litbuy";
 
-
-// =====================================================
-// 读取 Google Sheet 数据
-// =====================================================
-
 async function loadProducts() {
-
   const status = document.getElementById("status");
 
   status.textContent = "Loading products...";
 
   try {
-
-    const response = await fetch(
-      API_URL + "?time=" + Date.now()
-    );
+    const response = await fetch(API_URL + "?time=" + Date.now());
 
     if (!response.ok) {
-      throw new Error("Failed to load data");
+      throw new Error("HTTP " + response.status);
     }
 
     const data = await response.json();
+
+    console.log("API DATA:", data);
+    console.log("API KEYS:", Object.keys(data));
 
     if (data.error) {
       throw new Error(data.message || "Apps Script error");
@@ -45,92 +39,80 @@ async function loadProducts() {
 
     products = [];
 
-
-    // =================================================
-    // 只读取这 7 个分类
-    // =================================================
-
     categories.forEach(category => {
 
-      const rows = data[category];
+      let rows = data[category];
+
+      /*
+       * 如果 API 的分类名称存在细微差异，
+       * 尝试通过名称寻找对应的数据
+       */
+      if (!Array.isArray(rows)) {
+
+        const key = Object.keys(data).find(k => {
+          return k.trim().toLowerCase() === category.trim().toLowerCase();
+        });
+
+        if (key) {
+          rows = data[key];
+        }
+      }
 
       if (!Array.isArray(rows)) {
+        console.log("No array found for:", category);
         return;
       }
 
+      console.log(category, "=>", rows.length, "products");
 
       rows.forEach(row => {
 
-        const name =
-          String(row.name || "").trim();
+        if (!row || typeof row !== "object") {
+          return;
+        }
 
-        const price =
-          row.price ?? "";
+        const name = String(row.name || "").trim();
+        const price = row.price ?? "";
+        const sourceUrl = String(row.sourceUrl || "").trim();
+        const imageUrl = String(row.imageUrl || "").trim();
 
-        const sourceUrl =
-          String(row.sourceUrl || "").trim();
-
-        const imageUrl =
-          String(row.imageUrl || "").trim();
-
-
-        // 没有商品名称，不显示
         if (!name) {
           return;
         }
 
-
-        // 没有真实商品链接，不显示
         if (!sourceUrl) {
           return;
         }
 
-
         products.push({
-
           category: category,
-
           name: name,
-
           price: price,
-
           sourceUrl: sourceUrl,
-
           imageUrl: imageUrl,
-
           productId: extractProductId(sourceUrl)
-
         });
-
       });
-
     });
 
+    console.log("TOTAL PRODUCTS:", products.length);
 
     renderCategories();
-
     renderProducts();
-
 
   } catch (error) {
 
-    console.error(error);
+    console.error("LOAD ERROR:", error);
 
-    status.textContent =
-      "Failed to load Google Sheet";
+    status.textContent = "Failed to load Google Sheet";
 
     alert(
-      "无法读取 Google Sheet，请检查 Apps Script。"
+      "无法读取 Google Sheet。\n\n" +
+      "错误：" + error.message
     );
-
   }
-
 }
 
-
-// =====================================================
-// 提取商品 ID
-// =====================================================
 
 function extractProductId(url) {
 
@@ -138,302 +120,179 @@ function extractProductId(url) {
     return "";
   }
 
-
-  // LITBUY
-  let match = url.match(
-    /\/product\/[^/]+\/(\d+)/i
-  );
+  let match = url.match(/\/product\/[^/]+\/(\d+)/i);
 
   if (match) {
     return match[1];
   }
 
-
-  // Weidian
-  match = url.match(
-    /[?&]itemID=(\d+)/i
-  );
+  match = url.match(/[?&]itemID=(\d+)/i);
 
   if (match) {
     return match[1];
   }
 
-
-  // goodsId
-  match = url.match(
-    /[?&]goodsId=(\d+)/i
-  );
+  match = url.match(/[?&]goodsId=(\d+)/i);
 
   if (match) {
     return match[1];
   }
 
-
-  // id
-  match = url.match(
-    /[?&]id=(\d+)/i
-  );
+  match = url.match(/[?&]id=(\d+)/i);
 
   if (match) {
     return match[1];
   }
-
 
   return "";
 }
 
 
-// =====================================================
-// 根据 Agent 生成商品链接
-// =====================================================
-
 function getProductUrl(product) {
 
   const id = product.productId;
-
 
   if (!id) {
     return product.sourceUrl;
   }
 
-
-  // LITBUY
   if (currentAgent === "litbuy") {
-
     return product.sourceUrl;
-
   }
 
-
-  // OOPBUY
   if (currentAgent === "oopbuy") {
-
-    return (
-      "https://oopbuy.com/product/weidian/" +
-      id
-    );
-
+    return "https://oopbuy.com/product/weidian/" + id;
   }
 
-
-  // KAKOBUY
   if (currentAgent === "kakobuy") {
 
     const weidianUrl =
-      "https://weidian.com/item.html?itemID=" +
-      id;
+      "https://weidian.com/item.html?itemID=" + id;
 
     return (
       "https://item.kakobuy.com/item/details?url=" +
       encodeURIComponent(weidianUrl)
     );
-
   }
 
-
-  // HIPOBUY
   if (currentAgent === "hipobuy") {
-
-    return (
-      "https://hipobuy.com/product/weidian/" +
-      id
-    );
-
+    return "https://hipobuy.com/product/weidian/" + id;
   }
 
-
-  // LOVEGOBUY
   if (currentAgent === "lovegobuy") {
-
     return (
       "https://lovegobuy.com/product?id=" +
       id +
       "&shop_type=weidian"
     );
-
   }
 
-
-  // RIZZITGO
   if (currentAgent === "rizzitgo") {
-
     return (
       "https://rizzitgo.com/detail-page/?goodsId=" +
       id +
       "&source=3&rno=75FB20"
     );
-
   }
 
-
-  // BOONBUY
   if (currentAgent === "boonbuy") {
-
-    return (
-      "https://boonbuy.com/product/2/" +
-      id
-    );
-
+    return "https://boonbuy.com/product/2/" + id;
   }
 
-
-  // USFANS
   if (currentAgent === "usfans") {
-
-    return (
-      "https://usfans.com/product/3/" +
-      id
-    );
-
+    return "https://usfans.com/product/3/" + id;
   }
-
 
   return product.sourceUrl;
-
 }
 
 
-// =====================================================
-// 分类按钮
-// =====================================================
-
 function renderCategories() {
 
-  const nav =
-    document.getElementById("categoryNav");
+  const nav = document.getElementById("categoryNav");
 
   nav.innerHTML = "";
 
-
-  // ALL
-  const allButton =
-    document.createElement("button");
+  const allButton = document.createElement("button");
 
   allButton.className =
     "categoryButton " +
-    (
-      currentCategory === "ALL"
-        ? "active"
-        : ""
-    );
+    (currentCategory === "ALL" ? "active" : "");
 
   allButton.textContent = "ALL";
-
 
   allButton.onclick = function() {
 
     currentCategory = "ALL";
 
     renderCategories();
-
     renderProducts();
-
   };
-
 
   nav.appendChild(allButton);
 
 
-  // 7 个正式分类
   categories.forEach(category => {
 
-    const button =
-      document.createElement("button");
+    const button = document.createElement("button");
 
     button.className =
       "categoryButton " +
-      (
-        currentCategory === category
-          ? "active"
-          : ""
-      );
+      (currentCategory === category ? "active" : "");
 
     button.textContent = category;
-
 
     button.onclick = function() {
 
       currentCategory = category;
 
       renderCategories();
-
       renderProducts();
-
     };
 
-
     nav.appendChild(button);
-
   });
-
 }
 
 
-// =====================================================
-// 显示商品
-// =====================================================
-
 function renderProducts() {
 
-  const grid =
-    document.getElementById("productGrid");
+  const grid = document.getElementById("productGrid");
 
   const searchInput =
     document.getElementById("searchInput");
 
-
   const search =
     searchInput
-      ? searchInput.value
-          .trim()
-          .toLowerCase()
+      ? searchInput.value.trim().toLowerCase()
       : "";
-
 
   grid.innerHTML = "";
 
 
-  const filtered =
-    products.filter(product => {
+  const filtered = products.filter(product => {
 
-      const categoryMatch =
-        currentCategory === "ALL" ||
-        product.category === currentCategory;
+    const categoryMatch =
+      currentCategory === "ALL" ||
+      product.category === currentCategory;
 
+    const searchMatch =
+      !search ||
+      product.name.toLowerCase().includes(search);
 
-      const searchMatch =
-        !search ||
-        product.name
-          .toLowerCase()
-          .includes(search);
-
-
-      return (
-        categoryMatch &&
-        searchMatch
-      );
-
-    });
+    return categoryMatch && searchMatch;
+  });
 
 
   const empty =
     document.getElementById("emptyMessage");
 
-
   if (filtered.length === 0) {
-
     empty.style.display = "block";
-
   } else {
-
     empty.style.display = "none";
-
   }
 
-
-  // =================================================
-  // 商品卡片
-  // =================================================
 
   filtered.forEach(product => {
 
@@ -442,10 +301,6 @@ function renderProducts() {
 
     card.className = "productCard";
 
-
-    // =================================================
-    // 商品图片
-    // =================================================
 
     const image =
       document.createElement("div");
@@ -464,28 +319,20 @@ function renderProducts() {
 
       img.loading = "lazy";
 
-
       img.onerror = function() {
 
         this.style.display = "none";
 
         image.textContent = "IMAGE";
-
       };
-
 
       image.appendChild(img);
 
     } else {
 
       image.textContent = "IMAGE";
-
     }
 
-
-    // =================================================
-    // 商品信息
-    // =================================================
 
     const info =
       document.createElement("div");
@@ -493,7 +340,6 @@ function renderProducts() {
     info.className = "productInfo";
 
 
-    // 商品名称
     const name =
       document.createElement("div");
 
@@ -502,7 +348,6 @@ function renderProducts() {
     name.textContent = product.name;
 
 
-    // 商品价格
     const price =
       document.createElement("div");
 
@@ -522,11 +367,9 @@ function renderProducts() {
         priceText.startsWith("$")
           ? priceText
           : "$" + priceText;
-
     }
 
 
-    // 商品链接
     const link =
       document.createElement("a");
 
@@ -534,27 +377,22 @@ function renderProducts() {
 
     link.textContent = "VIEW PRODUCT";
 
-    link.href =
-      getProductUrl(product);
+    link.href = getProductUrl(product);
 
     link.target = "_blank";
 
-    link.rel =
-      "noopener noreferrer";
+    link.rel = "noopener noreferrer";
 
 
-    // 分类
     const category =
       document.createElement("div");
 
-    category.className =
-      "productCategory";
+    category.className = "productCategory";
 
     category.textContent =
       product.category;
 
 
-    // 加入商品信息
     info.appendChild(name);
 
     info.appendChild(price);
@@ -563,76 +401,40 @@ function renderProducts() {
 
     info.appendChild(category);
 
-
-    // 加入商品卡片
     card.appendChild(image);
 
     card.appendChild(info);
 
-
     grid.appendChild(card);
-
   });
 
-
-  // =================================================
-  // 商品数量
-  // =================================================
 
   const status =
     document.getElementById("status");
 
   status.textContent =
     filtered.length + " products";
-
 }
 
 
-// =====================================================
-// 搜索
-// =====================================================
-
 document
   .getElementById("searchInput")
-  .addEventListener(
-    "input",
-    renderProducts
-  );
+  .addEventListener("input", renderProducts);
 
-
-// =====================================================
-// Agent 切换
-// =====================================================
 
 document
   .getElementById("agentSelect")
-  .addEventListener(
-    "change",
-    function(event) {
+  .addEventListener("change", function(event) {
 
-      currentAgent =
-        event.target.value;
+    currentAgent = event.target.value;
 
-      renderProducts();
+    renderProducts();
+  });
 
-    }
-  );
-
-
-// =====================================================
-// Refresh
-// =====================================================
 
 document
   .getElementById("refreshBtn")
-  .addEventListener(
-    "click",
-    loadProducts
-  );
+  .addEventListener("click", loadProducts);
 
-
-// =====================================================
-// 开始读取 Google Sheet
-// =====================================================
 
 loadProducts();
