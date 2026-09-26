@@ -1197,6 +1197,20 @@ if (searchInput) {
     "input",
     function() {
 
+      const heroSearch =
+        document.getElementById(
+          "heroSearchInput"
+        );
+
+
+      if (heroSearch) {
+
+        heroSearch.value =
+          searchInput.value;
+
+      }
+
+
       renderProducts();
 
     }
