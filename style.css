@@ -1,3 +1,8 @@
+/* =========================================================
+   BESTR3PS
+   MODERN DARK / RED DESIGN
+========================================================= */
+
 * {
   box-sizing: border-box;
 }
@@ -8,12 +13,17 @@ html {
 
 body {
   margin: 0;
+
   font-family:
     Arial,
     Helvetica,
     sans-serif;
-  background: #f7f7f5;
+
+  background: #0a0a0a;
+
   color: #111;
+
+  overflow-x: hidden;
 }
 
 button,
@@ -33,89 +43,157 @@ a {
 
 .header {
   position: sticky;
+
   top: 0;
+
   z-index: 1000;
 
-  height: 74px;
+  height: 76px;
 
   display: flex;
+
   align-items: center;
 
-  padding: 0 40px;
+  padding: 0 42px;
 
-  background: rgba(255, 255, 255, 0.96);
+  background:
+    rgba(10, 10, 10, 0.92);
 
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.08);
 
-  backdrop-filter: blur(12px);
+  backdrop-filter:
+    blur(18px);
 }
 
 .logo {
   text-decoration: none;
 
+  color: #fff;
+
   font-size: 25px;
-  font-weight: 900;
-  letter-spacing: -1px;
+
+  font-weight: 950;
+
+  letter-spacing: -1.5px;
 
   white-space: nowrap;
+}
+
+.logo span {
+  color: #ff3030;
 }
 
 .mainNav {
   display: flex;
 
-  margin-left: 65px;
+  margin-left: 70px;
 
-  gap: 30px;
+  gap: 34px;
 }
 
 .mainNav a {
+  position: relative;
+
   text-decoration: none;
 
-  font-size: 13px;
-  font-weight: 700;
+  color: #8f8f8f;
 
-  color: #555;
+  font-size: 12px;
+
+  font-weight: 800;
+
+  transition: 0.2s;
+}
+
+.mainNav a::after {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+
+  bottom: -7px;
+
+  width: 0;
+
+  height: 1px;
+
+  background: #ff3030;
 
   transition: 0.2s;
 }
 
 .mainNav a:hover {
-  color: #111;
+  color: #fff;
+}
+
+.mainNav a:hover::after {
+  width: 100%;
 }
 
 .headerActions {
   margin-left: auto;
 
   display: flex;
+
   align-items: center;
 
   gap: 10px;
 }
 
+.headerAgentLabel {
+  color: #666;
+
+  font-size: 9px;
+
+  font-weight: 900;
+
+  letter-spacing: 1.4px;
+}
+
 #agentSelect,
 #desktopAgentSelect {
-  height: 42px;
+  height: 40px;
 
   padding: 0 13px;
 
-  border: 1px solid #d7d7d7;
-  border-radius: 7px;
+  border:
+    1px solid #2d2d2d;
 
-  background: #fff;
+  border-radius: 6px;
 
-  color: #111;
+  background: #151515;
 
-  font-size: 12px;
+  color: #fff;
+
+  font-size: 11px;
+
   font-weight: 800;
 
   cursor: pointer;
+
+  outline: none;
+}
+
+#agentSelect:hover,
+#desktopAgentSelect:hover {
+  border-color: #555;
+}
+
+#agentSelect:focus,
+#desktopAgentSelect:focus {
+  border-color: #ff3030;
 }
 
 .mobileMenuButton {
   display: none;
 
   border: 0;
+
   background: none;
+
+  color: #fff;
 
   font-size: 23px;
 
@@ -131,95 +209,323 @@ a {
   display: none;
 }
 
+.mobileNav.open {
+  display: flex;
+
+  position: fixed;
+
+  top: 76px;
+
+  left: 0;
+
+  right: 0;
+
+  z-index: 990;
+
+  flex-direction: column;
+
+  background: #111;
+
+  border-bottom:
+    1px solid #2b2b2b;
+}
+
+.mobileNav a {
+  padding: 16px 20px;
+
+  border-bottom:
+    1px solid #222;
+
+  text-decoration: none;
+
+  color: #aaa;
+
+  font-size: 13px;
+
+  font-weight: 800;
+}
+
+.mobileNav a:hover {
+  color: #fff;
+}
+
+
+/* =========================================================
+   FLOATING CONTACT BUTTONS
+========================================================= */
+
+.contactButtons {
+  position: fixed;
+
+  right: 20px;
+
+  bottom: 25px;
+
+  z-index: 950;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 9px;
+}
+
+.contactButton {
+  min-width: 145px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+
+  padding: 10px 13px;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.12);
+
+  border-radius: 8px;
+
+  background:
+    rgba(18, 18, 18, 0.94);
+
+  color: #fff;
+
+  text-decoration: none;
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.25);
+
+  backdrop-filter:
+    blur(12px);
+
+  transition:
+    transform 0.2s,
+    border-color 0.2s,
+    background 0.2s;
+}
+
+.contactButton:hover {
+  transform: translateX(-5px);
+
+  border-color: #ff3030;
+
+  background: #181818;
+}
+
+.contactIcon {
+  width: 30px;
+
+  height: 30px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 6px;
+
+  background: #ff3030;
+
+  color: #fff;
+
+  font-size: 12px;
+
+  font-weight: 900;
+}
+
+.contactText {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+.contactText small {
+  color: #777;
+
+  font-size: 7px;
+
+  font-weight: 900;
+
+  letter-spacing: 1px;
+}
+
+.contactText strong {
+  font-size: 10px;
+
+  letter-spacing: 0.4px;
+}
+
+.whatsappButton .contactIcon {
+  background: #25d366;
+}
+
 
 /* =========================================================
    HERO
 ========================================================= */
 
 .hero {
-  background: #fff;
+  position: relative;
 
-  border-bottom: 1px solid #e5e5e5;
+  min-height: 650px;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 75% 40%,
+      rgba(255, 48, 48, 0.10),
+      transparent 32%
+    ),
+    #0a0a0a;
+
+  color: #fff;
+
+  border-bottom:
+    1px solid #1c1c1c;
+}
+
+.heroGlow {
+  position: absolute;
+
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  filter: blur(70px);
+
+  opacity: 0.35;
+}
+
+.heroGlowOne {
+  width: 250px;
+
+  height: 250px;
+
+  right: 15%;
+
+  top: 15%;
+
+  background: rgba(255, 30, 30, 0.15);
+}
+
+.heroGlowTwo {
+  width: 180px;
+
+  height: 180px;
+
+  left: 5%;
+
+  bottom: -80px;
+
+  background: rgba(255, 30, 30, 0.08);
 }
 
 .heroInner {
-  max-width: 1440px;
+  position: relative;
 
-  min-height: 580px;
+  z-index: 2;
+
+  max-width: 1480px;
+
+  min-height: 650px;
 
   margin: auto;
 
-  padding: 80px 60px;
+  padding:
+    80px 60px;
 
   display: flex;
+
   align-items: center;
+
   justify-content: space-between;
 
   gap: 80px;
 }
 
 .heroText {
-  max-width: 720px;
+  max-width: 730px;
 }
 
 .heroLabel {
   display: flex;
+
   align-items: center;
 
-  gap: 9px;
+  gap: 10px;
 
   margin-bottom: 25px;
 
-  font-size: 11px;
+  color: #999;
+
+  font-size: 10px;
+
   font-weight: 900;
 
-  letter-spacing: 2px;
+  letter-spacing: 2.5px;
 }
 
 .heroLabel span {
-  width: 8px;
-  height: 8px;
+  width: 7px;
 
-  background: #111;
+  height: 7px;
 
   border-radius: 50%;
+
+  background: #ff3030;
+
+  box-shadow:
+    0 0 14px rgba(255, 48, 48, 0.8);
 }
 
 .hero h1 {
   margin: 0;
 
-  font-size: clamp(58px, 7vw, 100px);
+  font-size:
+    clamp(60px, 7.5vw, 108px);
 
-  line-height: 0.92;
+  line-height: 0.9;
 
-  letter-spacing: -5px;
+  letter-spacing: -6px;
 
-  font-weight: 900;
+  font-weight: 950;
 }
 
 .hero h1 strong {
-  font-weight: 900;
+  font-weight: 950;
+}
+
+.hero h1 strong span {
+  color: #ff3030;
 }
 
 .heroText > p {
-  max-width: 540px;
+  max-width: 560px;
 
   margin: 32px 0;
 
-  color: #666;
+  color: #898989;
 
-  font-size: 17px;
-  line-height: 1.7;
+  font-size: 16px;
+
+  line-height: 1.75;
 }
 
 .heroSearch {
   display: flex;
 
-  max-width: 570px;
+  max-width: 590px;
 
-  height: 54px;
+  height: 56px;
 
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .heroSearch input {
@@ -227,67 +533,132 @@ a {
 
   min-width: 0;
 
-  padding: 0 18px;
+  padding: 0 20px;
 
-  border: 1px solid #ccc;
+  border:
+    1px solid #303030;
+
   border-right: 0;
 
-  border-radius: 8px 0 0 8px;
+  border-radius:
+    7px 0 0 7px;
 
   outline: none;
 
-  font-size: 14px;
+  color: #fff;
 
-  background: #fafafa;
+  font-size: 13px;
+
+  background: #141414;
+}
+
+.heroSearch input::placeholder {
+  color: #666;
 }
 
 .heroSearch input:focus {
-  border-color: #111;
+  border-color: #555;
 }
 
 .heroSearch button {
-  width: 120px;
+  width: 115px;
 
-  border: 1px solid #111;
+  border:
+    1px solid #ff3030;
 
-  border-radius: 0 8px 8px 0;
+  border-radius:
+    0 7px 7px 0;
 
-  background: #111;
+  background: #ff3030;
+
   color: #fff;
 
-  font-size: 11px;
-  font-weight: 900;
+  font-size: 10px;
+
+  font-weight: 950;
 
   cursor: pointer;
-}
-
-.heroButton {
-  display: inline-flex;
-  align-items: center;
-
-  gap: 18px;
-
-  padding: 14px 20px;
-
-  background: #111;
-  color: #fff;
-
-  border-radius: 7px;
-
-  text-decoration: none;
-
-  font-size: 12px;
-  font-weight: 900;
 
   transition: 0.2s;
 }
 
+.heroSearch button:hover {
+  background: #e51f1f;
+
+  border-color: #e51f1f;
+}
+
+.heroActions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 22px;
+}
+
+.heroButton {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 18px;
+
+  padding:
+    14px 19px;
+
+  background: #fff;
+
+  color: #111;
+
+  border-radius: 6px;
+
+  text-decoration: none;
+
+  font-size: 10px;
+
+  font-weight: 950;
+
+  transition:
+    transform 0.2s,
+    background 0.2s;
+}
+
 .heroButton:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+
+  background: #ff3030;
+
+  color: #fff;
 }
 
 .heroButton span {
-  font-size: 18px;
+  font-size: 17px;
+}
+
+.heroMiniInfo {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  color: #666;
+
+  font-size: 9px;
+
+  font-weight: 900;
+
+  letter-spacing: 1px;
+}
+
+.heroMiniDot {
+  width: 6px;
+
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: #ff3030;
 }
 
 
@@ -298,17 +669,44 @@ a {
 .heroVisual {
   position: relative;
 
-  width: 390px;
-  height: 390px;
+  width: 410px;
+
+  height: 410px;
 
   flex-shrink: 0;
 }
 
-.heroCard {
+.heroVisualGrid {
   position: absolute;
 
-  background: #111;
-  color: #fff;
+  inset: -40px;
+
+  opacity: 0.15;
+
+  background-image:
+    linear-gradient(
+      rgba(255,255,255,0.07) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,0.07) 1px,
+      transparent 1px
+    );
+
+  background-size:
+    35px 35px;
+
+  mask-image:
+    radial-gradient(
+      circle,
+      black 25%,
+      transparent 75%
+    );
+}
+
+.heroCard {
+  position: absolute;
 
   border-radius: 18px;
 }
@@ -317,17 +715,28 @@ a {
   inset: 0;
 
   display: flex;
-  align-items: flex-end;
 
-  padding: 30px;
+  flex-direction: column;
+
+  justify-content: space-between;
+
+  padding: 28px;
+
+  overflow: hidden;
 
   background:
     linear-gradient(
       145deg,
       #222 0%,
       #111 45%,
-      #000 100%
+      #080808 100%
     );
+
+  border:
+    1px solid #292929;
+
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.45);
 }
 
 .heroCardLarge::before {
@@ -335,68 +744,175 @@ a {
 
   position: absolute;
 
-  top: 25px;
-  right: 30px;
+  right: -10px;
 
-  font-size: 170px;
+  top: -45px;
+
+  font-size: 310px;
 
   line-height: 1;
 
-  font-weight: 900;
+  font-weight: 950;
 
-  opacity: 0.08;
+  color: #fff;
+
+  opacity: 0.025;
 }
 
-.heroCardText {
+.heroCardTop,
+.heroCardBottom {
   position: relative;
+
   z-index: 2;
 
   display: flex;
+
+  justify-content: space-between;
+
+  color: #666;
+
+  font-size: 8px;
+
+  font-weight: 900;
+
+  letter-spacing: 2px;
+}
+
+.heroCardCenter {
+  position: relative;
+
+  z-index: 2;
+
+  display: flex;
+
   flex-direction: column;
 
-  gap: 3px;
+  gap: 2px;
 }
 
-.heroCardText span {
-  font-size: 12px;
-  letter-spacing: 3px;
+.heroCardCenter span {
+  color: #777;
+
+  font-size: 11px;
+
   font-weight: 800;
+
+  letter-spacing: 4px;
 }
 
-.heroCardText strong {
-  font-size: 45px;
-  letter-spacing: -2px;
+.heroCardCenter strong {
+  color: #fff;
+
+  font-size: 58px;
+
+  line-height: 0.95;
+
+  letter-spacing: -3px;
+}
+
+.heroCardBottom span:last-child {
+  color: #ff3030;
 }
 
 .heroCardSmall {
-  right: -25px;
-  top: 30px;
+  right: -30px;
+
+  top: 35px;
 
   width: 125px;
+
   height: 125px;
 
   display: flex;
+
   flex-direction: column;
-  justify-content: center;
+
   align-items: center;
 
+  justify-content: center;
+
   background: #fff;
+
   color: #111;
 
-  border: 1px solid #ddd;
+  border:
+    1px solid #ddd;
 
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+  border-radius: 15px;
+
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.35);
+
+  transform: rotate(3deg);
 }
 
-.heroCardSmall span {
-  font-size: 42px;
-  font-weight: 900;
+.smallNumber {
+  font-size: 45px;
+
+  line-height: 1;
+
+  font-weight: 950;
+
+  letter-spacing: -2px;
 }
 
 .heroCardSmall small {
-  font-size: 9px;
-  font-weight: 900;
+  margin-top: 6px;
+
+  font-size: 7px;
+
+  line-height: 1.4;
+
+  text-align: center;
+
+  font-weight: 950;
+
   letter-spacing: 2px;
+}
+
+.heroFloatingTag {
+  position: absolute;
+
+  left: -35px;
+
+  bottom: 30px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  padding:
+    9px 13px;
+
+  background: #161616;
+
+  border:
+    1px solid #292929;
+
+  border-radius: 6px;
+
+  color: #aaa;
+
+  font-size: 8px;
+
+  font-weight: 900;
+
+  letter-spacing: 1.5px;
+
+  box-shadow:
+    0 15px 35px rgba(0, 0, 0, 0.3);
+}
+
+.heroFloatingTag span {
+  width: 5px;
+
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: #ff3030;
 }
 
 
@@ -406,23 +922,26 @@ a {
 
 .sectionContainer {
   width: 100%;
-  max-width: 1440px;
+
+  max-width: 1480px;
 
   margin: auto;
 
   padding-left: 40px;
+
   padding-right: 40px;
 }
 
 .sectionEyebrow {
   display: block;
 
-  margin-bottom: 8px;
+  margin-bottom: 9px;
 
-  color: #888;
+  color: #999;
 
-  font-size: 10px;
-  font-weight: 900;
+  font-size: 9px;
+
+  font-weight: 950;
 
   letter-spacing: 2px;
 }
@@ -431,6 +950,7 @@ a {
   display: flex;
 
   align-items: flex-end;
+
   justify-content: space-between;
 
   margin-bottom: 30px;
@@ -440,18 +960,29 @@ a {
 .centerHeader h2 {
   margin: 0;
 
-  font-size: 35px;
+  color: inherit;
 
-  letter-spacing: -1.5px;
+  font-size: 36px;
+
+  letter-spacing: -1.8px;
 }
 
 .sectionLink {
   text-decoration: none;
 
-  font-size: 11px;
-  font-weight: 900;
+  color: #777;
 
-  color: #555;
+  font-size: 10px;
+
+  font-weight: 950;
+
+  transition: 0.2s;
+}
+
+.sectionLink span {
+  margin-left: 7px;
+
+  color: #ff3030;
 }
 
 .sectionLink:hover {
@@ -464,46 +995,86 @@ a {
 ========================================================= */
 
 .categorySection {
-  padding: 80px 0;
+  padding:
+    85px 0;
 
-  background: #f7f7f5;
+  background: #111;
+
+  color: #fff;
+
+  border-bottom:
+    1px solid #222;
+}
+
+.categorySection .sectionEyebrow {
+  color: #666;
+}
+
+.categorySection .sectionLink {
+  color: #777;
+}
+
+.categorySection .sectionLink:hover {
+  color: #fff;
 }
 
 .categoryTiles {
   display: grid;
 
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns:
+    repeat(6, 1fr);
 
-  gap: 12px;
+  gap: 10px;
 }
 
 .categoryTile {
   position: relative;
 
-  min-height: 155px;
+  min-height: 165px;
 
-  padding: 20px;
+  padding: 19px;
 
   display: flex;
+
   flex-direction: column;
+
   justify-content: flex-end;
 
   overflow: hidden;
 
-  background: #111;
+  background:
+    linear-gradient(
+      145deg,
+      #1d1d1d,
+      #131313
+    );
+
   color: #fff;
 
-  border-radius: 10px;
+  border:
+    1px solid #292929;
+
+  border-radius: 9px;
 
   cursor: pointer;
 
   transition:
     transform 0.25s,
+    border-color 0.25s,
     background 0.25s;
 }
 
 .categoryTile:hover {
-  transform: translateY(-5px);
+  transform: translateY(-6px);
+
+  border-color: #ff3030;
+
+  background:
+    linear-gradient(
+      145deg,
+      #252525,
+      #151515
+    );
 }
 
 .categoryTile::before {
@@ -511,34 +1082,57 @@ a {
 
   position: absolute;
 
-  right: -25px;
-  top: -40px;
+  right: -30px;
 
-  width: 120px;
-  height: 120px;
+  top: -45px;
+
+  width: 130px;
+
+  height: 130px;
 
   border-radius: 50%;
 
-  background: rgba(255, 255, 255, 0.07);
+  background:
+    rgba(255, 48, 48, 0.06);
+
+  transition: 0.25s;
+}
+
+.categoryTile:hover::before {
+  background:
+    rgba(255, 48, 48, 0.14);
+
+  transform: scale(1.2);
 }
 
 .categoryTileNumber {
   position: absolute;
 
   top: 15px;
-  left: 18px;
 
-  font-size: 10px;
-  font-weight: 800;
+  left: 17px;
 
-  opacity: 0.45;
+  color: #555;
+
+  font-size: 9px;
+
+  font-weight: 900;
+
+  letter-spacing: 1px;
 }
 
 .categoryTileName {
   position: relative;
 
-  font-size: 14px;
-  font-weight: 900;
+  z-index: 2;
+
+  max-width: 130px;
+
+  color: #eee;
+
+  font-size: 13px;
+
+  font-weight: 950;
 
   line-height: 1.2;
 
@@ -551,9 +1145,12 @@ a {
 ========================================================= */
 
 .findsSection {
-  padding: 85px 0 100px;
+  padding:
+    90px 0 105px;
 
-  background: #fff;
+  background: #f4f4f2;
+
+  color: #111;
 }
 
 .findsHeader {
@@ -563,38 +1160,75 @@ a {
 .findsControls {
   display: flex;
 
+  align-items: center;
+
   gap: 8px;
 }
 
+.searchBox {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+
+  left: 13px;
+
+  top: 50%;
+
+  transform: translateY(-52%);
+
+  color: #999;
+
+  font-size: 16px;
+
+  pointer-events: none;
+}
+
 #searchInput {
-  width: 250px;
+  width: 255px;
 
   height: 42px;
 
-  padding: 0 13px;
+  padding:
+    0 13px 0 34px;
 
-  border: 1px solid #d7d7d7;
+  border:
+    1px solid #d7d7d7;
+
   border-radius: 7px;
 
   outline: none;
 
   background: #fff;
 
-  font-size: 13px;
+  color: #111;
+
+  font-size: 12px;
 }
 
 #searchInput:focus {
   border-color: #111;
 }
 
+#desktopAgentSelect {
+  background: #fff;
+
+  color: #111;
+
+  border-color: #d7d7d7;
+}
+
 .categoryBar {
   display: flex;
+
   align-items: center;
+
   justify-content: space-between;
 
   gap: 15px;
 
-  margin-bottom: 14px;
+  margin-bottom: 15px;
 }
 
 #categoryNav {
@@ -616,18 +1250,21 @@ a {
 .categoryButton {
   flex-shrink: 0;
 
-  padding: 9px 15px;
+  padding:
+    9px 15px;
 
-  border: 1px solid #ddd;
+  border:
+    1px solid #d7d7d7;
 
   border-radius: 20px;
 
   background: #fff;
 
-  color: #555;
+  color: #666;
 
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 10px;
+
+  font-weight: 900;
 
   cursor: pointer;
 
@@ -636,12 +1273,15 @@ a {
 
 .categoryButton:hover {
   border-color: #111;
+
   color: #111;
 }
 
 .categoryButton.active {
   background: #111;
+
   border-color: #111;
+
   color: #fff;
 }
 
@@ -650,33 +1290,49 @@ a {
 
   height: 36px;
 
-  padding: 0 13px;
+  padding:
+    0 13px;
 
-  border: 1px solid #ddd;
+  display: flex;
+
+  align-items: center;
+
+  gap: 5px;
+
+  border:
+    1px solid #d7d7d7;
 
   border-radius: 7px;
 
   background: #fff;
 
-  color: #555;
+  color: #666;
 
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 10px;
+
+  font-weight: 800;
 
   cursor: pointer;
+
+  transition: 0.2s;
+}
+
+#refreshBtn span {
+  font-size: 15px;
 }
 
 #refreshBtn:hover {
   border-color: #111;
+
   color: #111;
 }
 
 .productsInfo {
-  margin-bottom: 15px;
+  margin-bottom: 16px;
 
-  color: #888;
+  color: #999;
 
-  font-size: 11px;
+  font-size: 10px;
 }
 
 
@@ -687,9 +1343,10 @@ a {
 #productGrid {
   display: grid;
 
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr));
 
-  gap: 18px;
+  gap: 17px;
 }
 
 .productCard {
@@ -699,20 +1356,24 @@ a {
 
   background: #fff;
 
-  border: 1px solid #e7e7e7;
+  border:
+    1px solid #e2e2df;
 
-  border-radius: 10px;
+  border-radius: 9px;
 
   transition:
     transform 0.22s,
-    box-shadow 0.22s;
+    box-shadow 0.22s,
+    border-color 0.22s;
 }
 
 .productCard:hover {
-  transform: translateY(-4px);
+  transform: translateY(-5px);
+
+  border-color: #d5d5d2;
 
   box-shadow:
-    0 12px 30px rgba(0, 0, 0, 0.08);
+    0 18px 40px rgba(0, 0, 0, 0.10);
 }
 
 
@@ -730,36 +1391,59 @@ a {
   overflow: hidden;
 
   display: flex;
+
   align-items: center;
+
   justify-content: center;
 
-  background: #f4f4f2;
+  background: #ededeb;
 
   color: #aaa;
 
-  font-size: 11px;
+  font-size: 10px;
+}
+
+.productImage::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  border:
+    1px solid rgba(0, 0, 0, 0.03);
+
+  pointer-events: none;
 }
 
 .productImage img {
   display: block;
 
   width: 100%;
+
   height: 100%;
 
-  /*
-   * IMPORTANT:
-   * Keep original image proportions.
-   * Images will NOT be stretched vertically.
-   */
   object-fit: contain;
 
   object-position: center;
 
-  transition: transform 0.35s;
+  transition:
+    transform 0.4s;
 }
 
-.productCard:hover .productImage img {
-  transform: scale(1.035);
+.productCard:hover
+.productImage img {
+  transform: scale(1.045);
+}
+
+.imageFallback {
+  color: #999;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  letter-spacing: 1px;
 }
 
 
@@ -777,23 +1461,31 @@ a {
   display: -webkit-box;
 
   -webkit-line-clamp: 2;
+
   -webkit-box-orient: vertical;
 
   overflow: hidden;
 
-  font-size: 13px;
-  font-weight: 700;
+  color: #171717;
 
-  line-height: 1.5;
+  font-size: 12px;
+
+  font-weight: 750;
+
+  line-height: 1.55;
 }
 
 .productPrice {
   min-height: 20px;
 
-  margin: 9px 0;
+  margin:
+    9px 0;
 
-  font-size: 16px;
-  font-weight: 900;
+  color: #111;
+
+  font-size: 15px;
+
+  font-weight: 950;
 }
 
 .viewButton {
@@ -803,37 +1495,41 @@ a {
 
   padding: 10px;
 
-  border-radius: 6px;
+  border-radius: 5px;
 
   background: #111;
+
   color: #fff;
 
   text-align: center;
+
   text-decoration: none;
 
-  font-size: 10px;
-  font-weight: 900;
+  font-size: 9px;
 
-  letter-spacing: 0.5px;
+  font-weight: 950;
+
+  letter-spacing: 0.7px;
 
   transition: 0.2s;
 }
 
 .viewButton:hover {
-  background: #333;
+  background: #ff3030;
 }
 
 .productCategory {
   margin-top: 9px;
 
-  color: #999;
+  color: #aaa;
 
-  font-size: 9px;
-  font-weight: 700;
+  font-size: 8px;
+
+  font-weight: 900;
 
   text-transform: uppercase;
 
-  letter-spacing: 0.5px;
+  letter-spacing: 0.7px;
 }
 
 
@@ -842,7 +1538,8 @@ a {
 ========================================================= */
 
 .empty {
-  padding: 100px 20px;
+  padding:
+    100px 20px;
 
   text-align: center;
 
@@ -850,15 +1547,16 @@ a {
 }
 
 .emptyIcon {
-  font-size: 40px;
-
   margin-bottom: 10px;
 
   color: #bbb;
+
+  font-size: 40px;
 }
 
 .empty h3 {
-  margin: 0 0 8px;
+  margin:
+    0 0 8px;
 
   color: #222;
 }
@@ -866,7 +1564,7 @@ a {
 .empty p {
   margin: 0;
 
-  font-size: 13px;
+  font-size: 12px;
 }
 
 
@@ -875,89 +1573,123 @@ a {
 ========================================================= */
 
 .howSection {
-  padding: 100px 0;
+  padding:
+    105px 0;
 
-  background: #f7f7f5;
+  background: #111;
+
+  color: #fff;
+
+  border-top:
+    1px solid #222;
 }
 
 .centerHeader {
   max-width: 650px;
 
-  margin: 0 auto 55px;
+  margin:
+    0 auto 55px;
 
   text-align: center;
 }
 
 .centerHeader .sectionEyebrow {
+  color: #666;
+
   margin-bottom: 12px;
 }
 
 .centerHeader p {
-  margin: 18px auto 0;
+  margin:
+    18px auto 0;
 
   color: #777;
 
-  font-size: 14px;
+  font-size: 13px;
 
-  line-height: 1.7;
+  line-height: 1.8;
 }
 
 .stepsGrid {
   display: grid;
 
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns:
+    repeat(3, 1fr);
 
-  gap: 15px;
+  gap: 12px;
 }
 
 .stepCard {
   position: relative;
 
-  min-height: 280px;
+  min-height: 285px;
 
   padding: 30px;
 
-  background: #fff;
+  background: #171717;
 
-  border: 1px solid #e5e5e5;
+  border:
+    1px solid #292929;
 
   border-radius: 10px;
+
+  transition:
+    transform 0.2s,
+    border-color 0.2s;
+}
+
+.stepCard:hover {
+  transform: translateY(-4px);
+
+  border-color: #444;
 }
 
 .stepNumber {
   position: absolute;
 
   top: 22px;
+
   right: 25px;
 
-  color: #bbb;
+  color: #555;
 
-  font-size: 11px;
+  font-size: 10px;
+
   font-weight: 900;
 }
 
 .stepIcon {
   width: 50px;
+
   height: 50px;
 
   margin-bottom: 35px;
 
   display: flex;
+
   align-items: center;
+
   justify-content: center;
 
   border-radius: 50%;
 
-  background: #111;
+  background: #ff3030;
+
   color: #fff;
 
-  font-size: 22px;
+  font-size: 21px;
+
+  box-shadow:
+    0 8px 25px rgba(255, 48, 48, 0.18);
 }
 
 .stepCard h3 {
-  margin: 0 0 10px;
+  margin:
+    0 0 10px;
 
-  font-size: 19px;
+  color: #fff;
+
+  font-size: 18px;
 }
 
 .stepCard p {
@@ -967,9 +1699,9 @@ a {
 
   color: #777;
 
-  font-size: 13px;
+  font-size: 12px;
 
-  line-height: 1.7;
+  line-height: 1.8;
 }
 
 
@@ -978,34 +1710,80 @@ a {
 ========================================================= */
 
 .aboutSection {
-  padding: 100px 0;
+  padding:
+    105px 0;
 
-  background: #fff;
+  background: #f4f4f2;
 }
 
 .aboutBox {
+  position: relative;
+
+  overflow: hidden;
+
   display: grid;
 
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns:
+    1fr 1fr;
 
   gap: 80px;
 
-  padding: 65px;
+  padding: 70px;
 
-  background: #111;
+  background:
+    linear-gradient(
+      135deg,
+      #171717,
+      #0c0c0c
+    );
+
   color: #fff;
 
   border-radius: 14px;
+
+  box-shadow:
+    0 25px 70px rgba(0, 0, 0, 0.15);
+}
+
+.aboutBox::after {
+  content: "B";
+
+  position: absolute;
+
+  right: -25px;
+
+  bottom: -120px;
+
+  color: #fff;
+
+  opacity: 0.025;
+
+  font-size: 400px;
+
+  font-weight: 950;
+
+  line-height: 1;
+}
+
+.aboutMain {
+  position: relative;
+
+  z-index: 2;
 }
 
 .aboutMain h2 {
   margin: 0;
 
-  font-size: clamp(38px, 5vw, 65px);
+  font-size:
+    clamp(38px, 5vw, 65px);
 
   line-height: 0.98;
 
   letter-spacing: -3px;
+}
+
+.aboutMain h2 span {
+  color: #ff3030;
 }
 
 .aboutMain p {
@@ -1013,19 +1791,58 @@ a {
 
   margin-top: 25px;
 
-  color: #aaa;
+  color: #888;
 
-  font-size: 14px;
+  font-size: 13px;
 
-  line-height: 1.8;
+  line-height: 1.9;
+}
+
+.aboutButton {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 15px;
+
+  margin-top: 15px;
+
+  padding:
+    12px 16px;
+
+  background: #fff;
+
+  color: #111;
+
+  border-radius: 5px;
+
+  text-decoration: none;
+
+  font-size: 9px;
+
+  font-weight: 950;
+
+  transition: 0.2s;
+}
+
+.aboutButton:hover {
+  background: #ff3030;
+
+  color: #fff;
 }
 
 .aboutFeatures {
+  position: relative;
+
+  z-index: 2;
+
   display: grid;
 
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns:
+    1fr 1fr;
 
-  gap: 35px 25px;
+  gap:
+    35px 25px;
 
   align-content: center;
 }
@@ -1037,28 +1854,29 @@ a {
 }
 
 .feature > strong {
-  color: #666;
+  color: #555;
 
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .feature span {
   display: flex;
+
   flex-direction: column;
 
   gap: 6px;
 
-  color: #999;
+  color: #777;
 
-  font-size: 12px;
+  font-size: 11px;
 
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .feature b {
   color: #fff;
 
-  font-size: 13px;
+  font-size: 12px;
 }
 
 
@@ -1067,42 +1885,57 @@ a {
 ========================================================= */
 
 .footer {
-  padding: 45px 40px 25px;
+  padding:
+    45px 40px 25px;
 
-  background: #111;
+  background: #080808;
 
   color: #fff;
 
-  border-top: 1px solid #222;
+  border-top:
+    1px solid #1d1d1d;
 }
 
 .footerInner {
-  max-width: 1440px;
+  max-width: 1480px;
 
   margin: auto;
 
   display: flex;
+
+  align-items: center;
+
   justify-content: space-between;
+
+  gap: 30px;
 
   padding-bottom: 35px;
 
-  border-bottom: 1px solid #333;
+  border-bottom:
+    1px solid #222;
 }
 
 .footerLogo {
   font-size: 22px;
-  font-weight: 900;
+
+  font-weight: 950;
+}
+
+.footerLogo span {
+  color: #ff3030;
 }
 
 .footerBrand p {
-  margin: 7px 0 0;
+  margin:
+    7px 0 0;
 
-  color: #777;
+  color: #666;
 
-  font-size: 11px;
+  font-size: 10px;
 }
 
-.footerLinks {
+.footerLinks,
+.footerContact {
   display: flex;
 
   gap: 25px;
@@ -1110,32 +1943,42 @@ a {
   align-items: center;
 }
 
-.footerLinks a {
-  color: #999;
+.footerLinks a,
+.footerContact a {
+  color: #777;
 
   text-decoration: none;
 
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 10px;
+
+  font-weight: 800;
+
+  transition: 0.2s;
 }
 
-.footerLinks a:hover {
+.footerLinks a:hover,
+.footerContact a:hover {
   color: #fff;
 }
 
+.footerContact a:last-child:hover {
+  color: #25d366;
+}
+
 .footerBottom {
-  max-width: 1440px;
+  max-width: 1480px;
 
   margin: auto;
 
   padding-top: 20px;
 
   display: flex;
+
   justify-content: space-between;
 
-  color: #666;
+  color: #555;
 
-  font-size: 10px;
+  font-size: 9px;
 }
 
 
@@ -1150,26 +1993,34 @@ a {
   }
 
   .mainNav {
-    margin-left: 35px;
+    margin-left: 40px;
 
-    gap: 20px;
+    gap: 22px;
   }
 
   .heroInner {
-    padding: 70px 40px;
+    padding:
+      70px 40px;
   }
 
   .heroVisual {
-    width: 320px;
-    height: 320px;
+    width: 330px;
+
+    height: 330px;
+  }
+
+  .heroCardCenter strong {
+    font-size: 47px;
   }
 
   #productGrid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
   }
 
   .categoryTiles {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns:
+      repeat(3, 1fr);
   }
 
 }
@@ -1189,40 +2040,15 @@ a {
     display: block;
   }
 
-  .mobileNav {
+  .headerAgentLabel {
     display: none;
-
-    position: sticky;
-    top: 74px;
-
-    z-index: 900;
-
-    flex-direction: column;
-
-    background: #fff;
-
-    border-bottom: 1px solid #ddd;
-  }
-
-  .mobileNav.open {
-    display: flex;
-  }
-
-  .mobileNav a {
-    padding: 15px 20px;
-
-    border-bottom: 1px solid #eee;
-
-    text-decoration: none;
-
-    font-size: 13px;
-    font-weight: 700;
   }
 
   .heroInner {
     min-height: auto;
 
-    padding: 65px 30px;
+    padding:
+      75px 30px;
 
     flex-direction: column;
 
@@ -1231,26 +2057,35 @@ a {
 
   .heroVisual {
     width: 100%;
+
     max-width: 390px;
+
+    height: 390px;
 
     margin: 0 auto;
   }
 
   .sectionContainer {
     padding-left: 25px;
+
     padding-right: 25px;
   }
 
   #productGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
   }
 
   .aboutBox {
     grid-template-columns: 1fr;
 
-    gap: 45px;
+    gap: 50px;
 
-    padding: 45px;
+    padding: 50px;
+  }
+
+  .footerInner {
+    flex-wrap: wrap;
   }
 
 }
@@ -1269,7 +2104,7 @@ a {
   }
 
   .logo {
-    font-size: 22px;
+    font-size: 21px;
   }
 
   .headerActions {
@@ -1277,46 +2112,96 @@ a {
   }
 
   #agentSelect {
-    height: 38px;
+    height: 37px;
 
-    max-width: 105px;
+    max-width: 100px;
 
     padding: 0 7px;
 
-    font-size: 10px;
+    font-size: 9px;
   }
 
   .mobileMenuButton {
     font-size: 20px;
   }
 
-  .mobileNav {
+  .mobileNav.open {
     top: 64px;
+  }
+
+
+  /* CONTACT BUTTONS */
+
+  .contactButtons {
+    right: 12px;
+
+    bottom: 12px;
+
+    gap: 7px;
+  }
+
+  .contactButton {
+    min-width: 0;
+
+    width: 43px;
+
+    height: 43px;
+
+    padding: 0;
+
+    justify-content: center;
+
+    border-radius: 50%;
+  }
+
+  .contactButton:hover {
+    transform: translateY(-3px);
+  }
+
+  .contactIcon {
+    width: 31px;
+
+    height: 31px;
+
+    border-radius: 50%;
+  }
+
+  .contactText {
+    display: none;
   }
 
 
   /* HERO */
 
-  .heroInner {
-    padding: 50px 20px 60px;
+  .hero {
+    min-height: auto;
+  }
 
-    gap: 45px;
+  .heroInner {
+    padding:
+      55px 20px 70px;
+
+    gap: 55px;
   }
 
   .heroLabel {
     margin-bottom: 20px;
+
+    font-size: 9px;
   }
 
   .hero h1 {
-    font-size: clamp(53px, 16vw, 78px);
+    font-size:
+      clamp(53px, 16vw, 78px);
 
     letter-spacing: -4px;
   }
 
   .heroText > p {
-    margin: 25px 0;
+    margin:
+      25px 0;
 
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .heroSearch {
@@ -1324,23 +2209,48 @@ a {
   }
 
   .heroSearch button {
-    width: 95px;
+    width: 90px;
+  }
+
+  .heroActions {
+    gap: 13px;
+
+    flex-wrap: wrap;
+  }
+
+  .heroMiniInfo {
+    font-size: 8px;
   }
 
   .heroVisual {
     width: 100%;
+
     height: 300px;
   }
 
   .heroCardSmall {
     right: -5px;
 
-    width: 100px;
-    height: 100px;
+    top: 20px;
+
+    width: 95px;
+
+    height: 95px;
   }
 
-  .heroCardText strong {
-    font-size: 38px;
+  .heroCardCenter strong {
+    font-size: 39px;
+  }
+
+  .heroCardTop,
+  .heroCardBottom {
+    font-size: 7px;
+  }
+
+  .heroFloatingTag {
+    left: -5px;
+
+    bottom: 18px;
   }
 
 
@@ -1348,6 +2258,7 @@ a {
 
   .sectionContainer {
     padding-left: 15px;
+
     padding-right: 15px;
   }
 
@@ -1355,8 +2266,9 @@ a {
   .findsSection,
   .howSection,
   .aboutSection {
-    padding-top: 60px;
-    padding-bottom: 60px;
+    padding-top: 65px;
+
+    padding-bottom: 65px;
   }
 
   .sectionHeader {
@@ -1374,9 +2286,10 @@ a {
   /* CATEGORIES */
 
   .categoryTiles {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns:
+      repeat(2, 1fr);
 
-    gap: 9px;
+    gap: 8px;
   }
 
   .categoryTile {
@@ -1386,7 +2299,7 @@ a {
   }
 
   .categoryTileName {
-    font-size: 12px;
+    font-size: 11px;
   }
 
 
@@ -1397,6 +2310,10 @@ a {
   }
 
   .findsControls {
+    width: 100%;
+  }
+
+  .searchBox {
     width: 100%;
   }
 
@@ -1413,7 +2330,8 @@ a {
   }
 
   #categoryNav {
-    max-width: calc(100% - 75px);
+    max-width:
+      calc(100% - 75px);
   }
 
   #refreshBtn {
@@ -1421,9 +2339,10 @@ a {
   }
 
   #productGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
 
-    gap: 10px;
+    gap: 9px;
   }
 
   .productInfo {
@@ -1431,9 +2350,9 @@ a {
   }
 
   .productName {
-    font-size: 12px;
+    font-size: 11px;
 
-    min-height: 36px;
+    min-height: 35px;
   }
 
   .productPrice {
@@ -1445,7 +2364,7 @@ a {
   .viewButton {
     padding: 9px 5px;
 
-    font-size: 9px;
+    font-size: 8px;
   }
 
 
@@ -1454,7 +2373,7 @@ a {
   .stepsGrid {
     grid-template-columns: 1fr;
 
-    gap: 10px;
+    gap: 9px;
   }
 
   .stepCard {
@@ -1467,9 +2386,10 @@ a {
   /* ABOUT */
 
   .aboutBox {
-    padding: 35px 25px;
+    padding:
+      38px 25px;
 
-    gap: 40px;
+    gap: 45px;
   }
 
   .aboutMain h2 {
@@ -1481,23 +2401,27 @@ a {
   .aboutFeatures {
     grid-template-columns: 1fr;
 
-    gap: 22px;
+    gap: 23px;
   }
 
 
   /* FOOTER */
 
   .footer {
-    padding: 35px 15px 20px;
+    padding:
+      35px 15px 20px;
   }
 
   .footerInner {
     flex-direction: column;
 
-    gap: 30px;
+    align-items: flex-start;
+
+    gap: 28px;
   }
 
-  .footerLinks {
+  .footerLinks,
+  .footerContact {
     flex-wrap: wrap;
 
     gap: 15px;
