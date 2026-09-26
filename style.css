@@ -2,1511 +2,358 @@
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #0b0b0b;
+  color: #ffffff;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 body {
-  margin: 0;
-  font-family:
-    Arial,
-    Helvetica,
-    sans-serif;
-  background: #f7f7f5;
-  color: #111;
-}
-
-button,
-input,
-select {
-  font: inherit;
-}
-
-a {
-  color: inherit;
+  min-height: 100vh;
 }
 
 
-/* =========================================================
+/* =========================
    HEADER
-========================================================= */
+========================= */
 
 .header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-
-  height: 74px;
+  width: 100%;
+  padding: 20px 30px;
 
   display: flex;
   align-items: center;
+  gap: 20px;
 
-  padding: 0 40px;
+  background: #111111;
+  border-bottom: 1px solid #242424;
 
-  background: rgba(255, 255, 255, 0.96);
-
-  border-bottom: 1px solid #e5e5e5;
-
-  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .logo {
-  text-decoration: none;
-
-  font-size: 25px;
-  font-weight: 900;
-  letter-spacing: -1px;
-
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 1px;
   white-space: nowrap;
 }
 
-.mainNav {
-  display: flex;
-
-  margin-left: 65px;
-
-  gap: 30px;
-}
-
-.mainNav a {
-  text-decoration: none;
-
-  font-size: 13px;
-  font-weight: 700;
-
-  color: #555;
-
-  transition: 0.2s;
-}
-
-.mainNav a:hover {
-  color: #111;
-}
-
-.headerActions {
-  margin-left: auto;
-
-  display: flex;
-  align-items: center;
-
-  gap: 10px;
-}
-
-#agentSelect,
-#desktopAgentSelect {
-  height: 42px;
-
-  padding: 0 13px;
-
-  border: 1px solid #d7d7d7;
-  border-radius: 7px;
-
-  background: #fff;
-
-  color: #111;
-
-  font-size: 12px;
-  font-weight: 800;
-
-  cursor: pointer;
-}
-
-.mobileMenuButton {
-  display: none;
-
-  border: 0;
-  background: none;
-
-  font-size: 23px;
-
-  cursor: pointer;
-}
-
-
-/* =========================================================
-   MOBILE NAV
-========================================================= */
-
-.mobileNav {
-  display: none;
-}
-
-
-/* =========================================================
-   HERO
-========================================================= */
-
-.hero {
-  background: #fff;
-
-  border-bottom: 1px solid #e5e5e5;
-}
-
-.heroInner {
-  max-width: 1440px;
-
-  min-height: 580px;
-
-  margin: auto;
-
-  padding: 80px 60px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  gap: 80px;
-}
-
-.heroText {
-  max-width: 720px;
-}
-
-.heroLabel {
-  display: flex;
-  align-items: center;
-
-  gap: 9px;
-
-  margin-bottom: 25px;
-
-  font-size: 11px;
-  font-weight: 900;
-
-  letter-spacing: 2px;
-}
-
-.heroLabel span {
-  width: 8px;
-  height: 8px;
-
-  background: #111;
-
-  border-radius: 50%;
-}
-
-.hero h1 {
-  margin: 0;
-
-  font-size: clamp(58px, 7vw, 100px);
-
-  line-height: 0.92;
-
-  letter-spacing: -5px;
-
-  font-weight: 900;
-}
-
-.hero h1 strong {
-  font-weight: 900;
-}
-
-.heroText > p {
-  max-width: 540px;
-
-  margin: 32px 0;
-
-  color: #666;
-
-  font-size: 17px;
-  line-height: 1.7;
-}
-
-.heroSearch {
-  display: flex;
-
-  max-width: 570px;
-
-  height: 54px;
-
-  margin-bottom: 18px;
-}
-
-.heroSearch input {
-  flex: 1;
-
-  min-width: 0;
-
-  padding: 0 18px;
-
-  border: 1px solid #ccc;
-  border-right: 0;
-
-  border-radius: 8px 0 0 8px;
-
-  outline: none;
-
-  font-size: 14px;
-
-  background: #fafafa;
-}
-
-.heroSearch input:focus {
-  border-color: #111;
-}
-
-.heroSearch button {
-  width: 120px;
-
-  border: 1px solid #111;
-
-  border-radius: 0 8px 8px 0;
-
-  background: #111;
-  color: #fff;
-
-  font-size: 11px;
-  font-weight: 900;
-
-  cursor: pointer;
-}
-
-.heroButton {
-  display: inline-flex;
-  align-items: center;
-
-  gap: 18px;
-
-  padding: 14px 20px;
-
-  background: #111;
-  color: #fff;
-
-  border-radius: 7px;
-
-  text-decoration: none;
-
-  font-size: 12px;
-  font-weight: 900;
-
-  transition: 0.2s;
-}
-
-.heroButton:hover {
-  transform: translateY(-2px);
-}
-
-.heroButton span {
-  font-size: 18px;
-}
-
-
-/* =========================================================
-   HERO VISUAL
-========================================================= */
-
-.heroVisual {
-  position: relative;
-
-  width: 390px;
-  height: 390px;
-
-  flex-shrink: 0;
-}
-
-.heroCard {
-  position: absolute;
-
-  background: #111;
-  color: #fff;
-
-  border-radius: 18px;
-}
-
-.heroCardLarge {
-  inset: 0;
-
-  display: flex;
-  align-items: flex-end;
-
-  padding: 30px;
-
-  background:
-    linear-gradient(
-      145deg,
-      #222 0%,
-      #111 45%,
-      #000 100%
-    );
-}
-
-.heroCardLarge::before {
-  content: "B";
-
-  position: absolute;
-
-  top: 25px;
-  right: 30px;
-
-  font-size: 170px;
-
-  line-height: 1;
-
-  font-weight: 900;
-
-  opacity: 0.08;
-}
-
-.heroCardText {
-  position: relative;
-  z-index: 2;
-
-  display: flex;
-  flex-direction: column;
-
-  gap: 3px;
-}
-
-.heroCardText span {
-  font-size: 12px;
-  letter-spacing: 3px;
-  font-weight: 800;
-}
-
-.heroCardText strong {
-  font-size: 45px;
-  letter-spacing: -2px;
-}
-
-.heroCardSmall {
-  right: -25px;
-  top: 30px;
-
-  width: 125px;
-  height: 125px;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-
-  background: #fff;
-  color: #111;
-
-  border: 1px solid #ddd;
-
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
-}
-
-.heroCardSmall span {
-  font-size: 42px;
-  font-weight: 900;
-}
-
-.heroCardSmall small {
-  font-size: 9px;
-  font-weight: 900;
-  letter-spacing: 2px;
-}
-
-
-/* =========================================================
-   GENERAL SECTIONS
-========================================================= */
-
-.sectionContainer {
-  width: 100%;
-  max-width: 1440px;
-
-  margin: auto;
-
-  padding-left: 40px;
-  padding-right: 40px;
-}
-
-.sectionEyebrow {
-  display: block;
-
-  margin-bottom: 8px;
-
-  color: #888;
-
-  font-size: 10px;
-  font-weight: 900;
-
-  letter-spacing: 2px;
-}
-
-.sectionHeader {
-  display: flex;
-
-  align-items: flex-end;
-  justify-content: space-between;
-
-  margin-bottom: 30px;
-}
-
-.sectionHeader h2,
-.centerHeader h2 {
-  margin: 0;
-
-  font-size: 35px;
-
-  letter-spacing: -1.5px;
-}
-
-.sectionLink {
-  text-decoration: none;
-
-  font-size: 11px;
-  font-weight: 900;
-
-  color: #555;
-}
-
-.sectionLink:hover {
-  color: #111;
-}
-
-
-/* =========================================================
-   CATEGORY SECTION
-========================================================= */
-
-.categorySection {
-  padding: 80px 0;
-
-  background: #f7f7f5;
-}
-
-.categoryTiles {
-  display: grid;
-
-  grid-template-columns: repeat(6, 1fr);
-
-  gap: 12px;
-}
-
-.categoryTile {
-  position: relative;
-
-  min-height: 155px;
-
-  padding: 20px;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-
-  overflow: hidden;
-
-  background: #111;
-  color: #fff;
-
-  border-radius: 10px;
-
-  cursor: pointer;
-
-  transition:
-    transform 0.25s,
-    background 0.25s;
-}
-
-.categoryTile:hover {
-  transform: translateY(-5px);
-}
-
-.categoryTile::before {
-  content: "";
-
-  position: absolute;
-
-  right: -25px;
-  top: -40px;
-
-  width: 120px;
-  height: 120px;
-
-  border-radius: 50%;
-
-  background: rgba(255, 255, 255, 0.07);
-}
-
-.categoryTileNumber {
-  position: absolute;
-
-  top: 15px;
-  left: 18px;
-
-  font-size: 10px;
-  font-weight: 800;
-
-  opacity: 0.45;
-}
-
-.categoryTileName {
-  position: relative;
-
-  font-size: 14px;
-  font-weight: 900;
-
-  line-height: 1.2;
-
-  letter-spacing: -0.3px;
-}
-
-
-/* =========================================================
-   FINDS
-========================================================= */
-
-.findsSection {
-  padding: 85px 0 100px;
-
-  background: #fff;
-}
-
-.findsHeader {
-  margin-bottom: 25px;
-}
-
-.findsControls {
-  display: flex;
-
-  gap: 8px;
-}
 
 #searchInput {
-  width: 250px;
+  flex: 1;
 
-  height: 42px;
+  height: 44px;
+  padding: 0 16px;
 
-  padding: 0 13px;
+  background: #1a1a1a;
+  border: 1px solid #333333;
+  border-radius: 8px;
 
-  border: 1px solid #d7d7d7;
-  border-radius: 7px;
-
+  color: #ffffff;
   outline: none;
+}
 
-  background: #fff;
-
-  font-size: 13px;
+#searchInput::placeholder {
+  color: #888888;
 }
 
 #searchInput:focus {
-  border-color: #111;
+  border-color: #555555;
 }
 
-.categoryBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 
-  gap: 15px;
+#agentSelect {
+  height: 44px;
+  padding: 0 14px;
 
-  margin-bottom: 14px;
+  background: #1a1a1a;
+  color: #ffffff;
+
+  border: 1px solid #333333;
+  border-radius: 8px;
+
+  outline: none;
 }
+
+
+/* =========================
+   CATEGORY NAV
+========================= */
 
 #categoryNav {
-  display: flex;
+  width: 100%;
 
-  gap: 7px;
+  display: flex;
+  gap: 10px;
+
+  padding: 16px 30px;
 
   overflow-x: auto;
 
-  padding-bottom: 4px;
-
-  scrollbar-width: none;
+  background: #0f0f0f;
+  border-bottom: 1px solid #222222;
 }
 
-#categoryNav::-webkit-scrollbar {
-  display: none;
-}
-
-.categoryButton {
+#categoryNav button {
   flex-shrink: 0;
 
-  padding: 9px 15px;
+  padding: 9px 16px;
 
-  border: 1px solid #ddd;
+  background: #181818;
+  color: #cccccc;
 
-  border-radius: 20px;
-
-  background: #fff;
-
-  color: #555;
-
-  font-size: 11px;
-  font-weight: 800;
+  border: 1px solid #303030;
+  border-radius: 6px;
 
   cursor: pointer;
 
-  transition: 0.2s;
+  font-size: 13px;
 }
 
-.categoryButton:hover {
-  border-color: #111;
-  color: #111;
+#categoryNav button:hover {
+  background: #222222;
+  color: #ffffff;
 }
 
-.categoryButton.active {
-  background: #111;
-  border-color: #111;
-  color: #fff;
+#categoryNav button.active {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
 }
+
+
+/* =========================
+   MAIN
+========================= */
+
+main {
+  width: 100%;
+  max-width: 1600px;
+
+  margin: 0 auto;
+  padding: 20px 30px 50px;
+}
+
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 20px;
+
+  color: #888888;
+  font-size: 14px;
+}
+
 
 #refreshBtn {
-  flex-shrink: 0;
+  padding: 8px 14px;
 
-  height: 36px;
+  background: #181818;
+  color: #ffffff;
 
-  padding: 0 13px;
-
-  border: 1px solid #ddd;
-
-  border-radius: 7px;
-
-  background: #fff;
-
-  color: #555;
-
-  font-size: 11px;
-  font-weight: 700;
+  border: 1px solid #333333;
+  border-radius: 6px;
 
   cursor: pointer;
 }
 
 #refreshBtn:hover {
-  border-color: #111;
-  color: #111;
-}
-
-.productsInfo {
-  margin-bottom: 15px;
-
-  color: #888;
-
-  font-size: 11px;
+  background: #242424;
 }
 
 
-/* =========================================================
+/* =========================
    PRODUCT GRID
-========================================================= */
+========================= */
 
 #productGrid {
   display: grid;
 
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns:
+    repeat(auto-fill, minmax(210px, 1fr));
 
   gap: 18px;
 }
 
-.productCard {
-  min-width: 0;
 
+/* =========================
+   PRODUCT CARD
+========================= */
+
+.product-card {
   overflow: hidden;
 
-  background: #fff;
+  background: #121212;
 
-  border: 1px solid #e7e7e7;
-
+  border: 1px solid #242424;
   border-radius: 10px;
 
   transition:
-    transform 0.22s,
-    box-shadow 0.22s;
+    transform 0.15s ease,
+    border-color 0.15s ease;
 }
 
-.productCard:hover {
-  transform: translateY(-4px);
-
-  box-shadow:
-    0 12px 30px rgba(0, 0, 0, 0.08);
+.product-card:hover {
+  transform: translateY(-3px);
+  border-color: #444444;
 }
 
 
-/* =========================================================
+/* =========================
    PRODUCT IMAGE
-========================================================= */
+========================= */
 
-.productImage {
-  position: relative;
+/*
+   关键：
+   不再把图片强行拉成长条。
+*/
+
+.product-image {
+  display: block;
 
   width: 100%;
 
   aspect-ratio: 1 / 1;
 
-  overflow: hidden;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: #f4f4f2;
-
-  color: #aaa;
-
-  font-size: 11px;
-}
-
-.productImage img {
-  display: block;
-
-  width: 100%;
-  height: 100%;
-
-  /*
-   * IMPORTANT:
-   * Keep original image proportions.
-   * Images will NOT be stretched vertically.
-   */
   object-fit: contain;
 
-  object-position: center;
-
-  transition: transform 0.35s;
-}
-
-.productCard:hover .productImage img {
-  transform: scale(1.035);
+  background: #ffffff;
 }
 
 
-/* =========================================================
+/* =========================
    PRODUCT INFO
-========================================================= */
+========================= */
 
-.productInfo {
-  padding: 14px;
+.product-info {
+  padding: 13px;
 }
 
-.productName {
-  min-height: 40px;
+.product-name {
+  min-height: 38px;
+
+  color: #ffffff;
+
+  font-size: 14px;
+  line-height: 1.4;
 
   display: -webkit-box;
-
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 
   overflow: hidden;
+}
+
+
+.product-price {
+  margin-top: 8px;
+
+  color: #bbbbbb;
 
   font-size: 13px;
-  font-weight: 700;
-
-  line-height: 1.5;
 }
 
-.productPrice {
-  min-height: 20px;
 
-  margin: 9px 0;
-
-  font-size: 16px;
-  font-weight: 900;
-}
-
-.viewButton {
+.product-link {
   display: block;
 
-  width: 100%;
+  margin-top: 12px;
+  padding: 9px 10px;
 
-  padding: 10px;
+  text-align: center;
+
+  background: #ffffff;
+  color: #000000;
 
   border-radius: 6px;
 
-  background: #111;
-  color: #fff;
-
-  text-align: center;
-  text-decoration: none;
-
-  font-size: 10px;
-  font-weight: 900;
-
-  letter-spacing: 0.5px;
-
-  transition: 0.2s;
-}
-
-.viewButton:hover {
-  background: #333;
-}
-
-.productCategory {
-  margin-top: 9px;
-
-  color: #999;
-
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
 
-  text-transform: uppercase;
+  text-decoration: none;
+}
 
-  letter-spacing: 0.5px;
+.product-link:hover {
+  background: #dddddd;
 }
 
 
-/* =========================================================
+/* =========================
    EMPTY
-========================================================= */
+========================= */
 
 .empty {
-  padding: 100px 20px;
+  padding: 60px 20px;
 
   text-align: center;
 
-  color: #777;
-}
-
-.emptyIcon {
-  font-size: 40px;
-
-  margin-bottom: 10px;
-
-  color: #bbb;
-}
-
-.empty h3 {
-  margin: 0 0 8px;
-
-  color: #222;
-}
-
-.empty p {
-  margin: 0;
-
-  font-size: 13px;
+  color: #777777;
 }
 
 
-/* =========================================================
-   HOW IT WORKS
-========================================================= */
-
-.howSection {
-  padding: 100px 0;
-
-  background: #f7f7f5;
-}
-
-.centerHeader {
-  max-width: 650px;
-
-  margin: 0 auto 55px;
-
-  text-align: center;
-}
-
-.centerHeader .sectionEyebrow {
-  margin-bottom: 12px;
-}
-
-.centerHeader p {
-  margin: 18px auto 0;
-
-  color: #777;
-
-  font-size: 14px;
-
-  line-height: 1.7;
-}
-
-.stepsGrid {
-  display: grid;
-
-  grid-template-columns: repeat(3, 1fr);
-
-  gap: 15px;
-}
-
-.stepCard {
-  position: relative;
-
-  min-height: 280px;
-
-  padding: 30px;
-
-  background: #fff;
-
-  border: 1px solid #e5e5e5;
-
-  border-radius: 10px;
-}
-
-.stepNumber {
-  position: absolute;
-
-  top: 22px;
-  right: 25px;
-
-  color: #bbb;
-
-  font-size: 11px;
-  font-weight: 900;
-}
-
-.stepIcon {
-  width: 50px;
-  height: 50px;
-
-  margin-bottom: 35px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 50%;
-
-  background: #111;
-  color: #fff;
-
-  font-size: 22px;
-}
-
-.stepCard h3 {
-  margin: 0 0 10px;
-
-  font-size: 19px;
-}
-
-.stepCard p {
-  margin: 0;
-
-  max-width: 300px;
-
-  color: #777;
-
-  font-size: 13px;
-
-  line-height: 1.7;
-}
-
-
-/* =========================================================
-   ABOUT
-========================================================= */
-
-.aboutSection {
-  padding: 100px 0;
-
-  background: #fff;
-}
-
-.aboutBox {
-  display: grid;
-
-  grid-template-columns: 1fr 1fr;
-
-  gap: 80px;
-
-  padding: 65px;
-
-  background: #111;
-  color: #fff;
-
-  border-radius: 14px;
-}
-
-.aboutMain h2 {
-  margin: 0;
-
-  font-size: clamp(38px, 5vw, 65px);
-
-  line-height: 0.98;
-
-  letter-spacing: -3px;
-}
-
-.aboutMain p {
-  max-width: 500px;
-
-  margin-top: 25px;
-
-  color: #aaa;
-
-  font-size: 14px;
-
-  line-height: 1.8;
-}
-
-.aboutFeatures {
-  display: grid;
-
-  grid-template-columns: 1fr 1fr;
-
-  gap: 35px 25px;
-
-  align-content: center;
-}
-
-.feature {
-  display: flex;
-
-  gap: 14px;
-}
-
-.feature > strong {
-  color: #666;
-
-  font-size: 11px;
-}
-
-.feature span {
-  display: flex;
-  flex-direction: column;
-
-  gap: 6px;
-
-  color: #999;
-
-  font-size: 12px;
-
-  line-height: 1.5;
-}
-
-.feature b {
-  color: #fff;
-
-  font-size: 13px;
-}
-
-
-/* =========================================================
-   FOOTER
-========================================================= */
-
-.footer {
-  padding: 45px 40px 25px;
-
-  background: #111;
-
-  color: #fff;
-
-  border-top: 1px solid #222;
-}
-
-.footerInner {
-  max-width: 1440px;
-
-  margin: auto;
-
-  display: flex;
-  justify-content: space-between;
-
-  padding-bottom: 35px;
-
-  border-bottom: 1px solid #333;
-}
-
-.footerLogo {
-  font-size: 22px;
-  font-weight: 900;
-}
-
-.footerBrand p {
-  margin: 7px 0 0;
-
-  color: #777;
-
-  font-size: 11px;
-}
-
-.footerLinks {
-  display: flex;
-
-  gap: 25px;
-
-  align-items: center;
-}
-
-.footerLinks a {
-  color: #999;
-
-  text-decoration: none;
-
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.footerLinks a:hover {
-  color: #fff;
-}
-
-.footerBottom {
-  max-width: 1440px;
-
-  margin: auto;
-
-  padding-top: 20px;
-
-  display: flex;
-  justify-content: space-between;
-
-  color: #666;
-
-  font-size: 10px;
-}
-
-
-/* =========================================================
-   LARGE TABLET
-========================================================= */
-
-@media (max-width: 1200px) {
-
-  .header {
-    padding: 0 25px;
-  }
-
-  .mainNav {
-    margin-left: 35px;
-
-    gap: 20px;
-  }
-
-  .heroInner {
-    padding: 70px 40px;
-  }
-
-  .heroVisual {
-    width: 320px;
-    height: 320px;
-  }
-
-  #productGrid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .categoryTiles {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-}
-
-
-/* =========================================================
-   TABLET
-========================================================= */
-
-@media (max-width: 900px) {
-
-  .mainNav {
-    display: none;
-  }
-
-  .mobileMenuButton {
-    display: block;
-  }
-
-  .mobileNav {
-    display: none;
-
-    position: sticky;
-    top: 74px;
-
-    z-index: 900;
-
-    flex-direction: column;
-
-    background: #fff;
-
-    border-bottom: 1px solid #ddd;
-  }
-
-  .mobileNav.open {
-    display: flex;
-  }
-
-  .mobileNav a {
-    padding: 15px 20px;
-
-    border-bottom: 1px solid #eee;
-
-    text-decoration: none;
-
-    font-size: 13px;
-    font-weight: 700;
-  }
-
-  .heroInner {
-    min-height: auto;
-
-    padding: 65px 30px;
-
-    flex-direction: column;
-
-    align-items: flex-start;
-  }
-
-  .heroVisual {
-    width: 100%;
-    max-width: 390px;
-
-    margin: 0 auto;
-  }
-
-  .sectionContainer {
-    padding-left: 25px;
-    padding-right: 25px;
-  }
-
-  #productGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .aboutBox {
-    grid-template-columns: 1fr;
-
-    gap: 45px;
-
-    padding: 45px;
-  }
-
-}
-
-
-/* =========================================================
+/* =========================
    MOBILE
-========================================================= */
+========================= */
 
-@media (max-width: 650px) {
+@media (max-width: 700px) {
 
   .header {
-    height: 64px;
+    padding: 14px;
 
-    padding: 0 15px;
+    flex-wrap: wrap;
+    gap: 10px;
   }
 
   .logo {
-    font-size: 22px;
-  }
-
-  .headerActions {
-    gap: 7px;
-  }
-
-  #agentSelect {
-    height: 38px;
-
-    max-width: 105px;
-
-    padding: 0 7px;
-
-    font-size: 10px;
-  }
-
-  .mobileMenuButton {
-    font-size: 20px;
-  }
-
-  .mobileNav {
-    top: 64px;
-  }
-
-
-  /* HERO */
-
-  .heroInner {
-    padding: 50px 20px 60px;
-
-    gap: 45px;
-  }
-
-  .heroLabel {
-    margin-bottom: 20px;
-  }
-
-  .hero h1 {
-    font-size: clamp(53px, 16vw, 78px);
-
-    letter-spacing: -4px;
-  }
-
-  .heroText > p {
-    margin: 25px 0;
-
-    font-size: 14px;
-  }
-
-  .heroSearch {
-    height: 48px;
-  }
-
-  .heroSearch button {
-    width: 95px;
-  }
-
-  .heroVisual {
-    width: 100%;
-    height: 300px;
-  }
-
-  .heroCardSmall {
-    right: -5px;
-
-    width: 100px;
-    height: 100px;
-  }
-
-  .heroCardText strong {
-    font-size: 38px;
-  }
-
-
-  /* SECTIONS */
-
-  .sectionContainer {
-    padding-left: 15px;
-    padding-right: 15px;
-  }
-
-  .categorySection,
-  .findsSection,
-  .howSection,
-  .aboutSection {
-    padding-top: 60px;
-    padding-bottom: 60px;
-  }
-
-  .sectionHeader {
-    align-items: flex-start;
-
-    gap: 15px;
-  }
-
-  .sectionHeader h2,
-  .centerHeader h2 {
-    font-size: 28px;
-  }
-
-
-  /* CATEGORIES */
-
-  .categoryTiles {
-    grid-template-columns: repeat(2, 1fr);
-
-    gap: 9px;
-  }
-
-  .categoryTile {
-    min-height: 120px;
-
-    padding: 15px;
-  }
-
-  .categoryTileName {
-    font-size: 12px;
-  }
-
-
-  /* FINDS */
-
-  .findsHeader {
-    flex-direction: column;
-  }
-
-  .findsControls {
     width: 100%;
   }
 
   #searchInput {
     width: 100%;
+    flex: none;
   }
 
-  #desktopAgentSelect {
-    display: none;
-  }
-
-  .categoryBar {
-    align-items: flex-start;
+  #agentSelect {
+    width: 100%;
   }
 
   #categoryNav {
-    max-width: calc(100% - 75px);
+    padding: 12px 14px;
   }
 
-  #refreshBtn {
-    padding: 0 9px;
+  main {
+    padding: 15px 14px 40px;
   }
 
   #productGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
 
     gap: 10px;
   }
 
-  .productInfo {
+  .product-info {
     padding: 10px;
   }
 
-  .productName {
+  .product-name {
     font-size: 12px;
-
-    min-height: 36px;
   }
 
-  .productPrice {
-    font-size: 14px;
-
-    margin: 7px 0;
+  .product-price {
+    font-size: 12px;
   }
 
-  .viewButton {
-    padding: 9px 5px;
-
-    font-size: 9px;
-  }
-
-
-  /* HOW */
-
-  .stepsGrid {
-    grid-template-columns: 1fr;
-
-    gap: 10px;
-  }
-
-  .stepCard {
-    min-height: auto;
-
-    padding: 25px;
-  }
-
-
-  /* ABOUT */
-
-  .aboutBox {
-    padding: 35px 25px;
-
-    gap: 40px;
-  }
-
-  .aboutMain h2 {
-    font-size: 42px;
-
-    letter-spacing: -2px;
-  }
-
-  .aboutFeatures {
-    grid-template-columns: 1fr;
-
-    gap: 22px;
-  }
-
-
-  /* FOOTER */
-
-  .footer {
-    padding: 35px 15px 20px;
-  }
-
-  .footerInner {
-    flex-direction: column;
-
-    gap: 30px;
-  }
-
-  .footerLinks {
-    flex-wrap: wrap;
-
-    gap: 15px;
-  }
-
-  .footerBottom {
-    flex-direction: column;
-
-    gap: 8px;
+  .product-link {
+    font-size: 11px;
+    padding: 8px 5px;
   }
 
 }
