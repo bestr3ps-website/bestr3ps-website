@@ -3,51 +3,402 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BESTR3PS</title>
+
+  <meta name="description" content="BESTR3PS — Discover curated finds and shop through your preferred agent.">
+  <meta name="theme-color" content="#111111">
+
+  <title>BESTR3PS — Discover Better Finds</title>
+
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<header class="header">
-  <div class="logo">BESTR3PS</div>
+  <!-- ================= HEADER ================= -->
 
-  <input
-    id="searchInput"
-    type="search"
-    placeholder="Search products or brands..."
-  >
+  <header class="header">
 
-<select id="agentSelect">
-  <option value="litbuy">LITBUY</option>
-  <option value="oopbuy">OOPBUY</option>
-  <option value="kakobuy">KAKOBUY</option>
-  <option value="hipobuy">HIPOBUY</option>
-  <option value="lovegobuy">LOVEGOBUY</option>
-  <option value="rizzitgo">RIZZITGO</option>
-  <option value="boonbuy">BOONBUY</option>
-  <option value="usfans">USFANS</option>
-</select>
-</header>
+    <a href="#" class="logo" id="homeLogo">
+      BESTR3PS
+    </a>
 
-<nav id="categoryNav"></nav>
+    <nav class="mainNav">
+      <a href="#home">Home</a>
+      <a href="#finds">Finds</a>
+      <a href="#howItWorks">How It Works</a>
+      <a href="#about">About</a>
+    </nav>
 
-<main>
+    <div class="headerActions">
 
-  <div class="topbar">
-    <span id="status">Loading...</span>
-    <button id="refreshBtn">Refresh</button>
+      <select id="agentSelect" aria-label="Choose shopping agent">
+        <option value="litbuy">LITBUY</option>
+        <option value="oopbuy">OOPBUY</option>
+        <option value="kakobuy">KAKOBUY</option>
+        <option value="hipobuy">HIPOBUY</option>
+        <option value="lovegobuy">LOVEGOBUY</option>
+        <option value="rizzitgo">RIZZITGO</option>
+        <option value="boonbuy">BOONBUY</option>
+        <option value="usfans">USFANS</option>
+      </select>
+
+      <button class="mobileMenuButton" id="mobileMenuButton" type="button">
+        ☰
+      </button>
+
+    </div>
+
+  </header>
+
+
+  <!-- ================= MOBILE NAV ================= -->
+
+  <div class="mobileNav" id="mobileNav">
+    <a href="#home">Home</a>
+    <a href="#finds">Finds</a>
+    <a href="#howItWorks">How It Works</a>
+    <a href="#about">About</a>
   </div>
 
-  <div id="productGrid"></div>
 
-  <div id="emptyMessage" class="empty" style="display:none;">
-    No products found.
-  </div>
+  <!-- ================= HERO ================= -->
 
-</main>
+  <section class="hero" id="home">
 
-<script src="app.js"></script>
+    <div class="heroInner">
+
+      <div class="heroText">
+
+        <div class="heroLabel">
+          <span></span>
+          BESTR3PS FINDS
+        </div>
+
+        <h1>
+          Discover<br>
+          <strong>Better Finds.</strong>
+        </h1>
+
+        <p>
+          Explore curated products, discover new finds,
+          and shop through the agent that works for you.
+        </p>
+
+        <div class="heroSearch">
+
+          <input
+            id="heroSearchInput"
+            type="search"
+            placeholder="Search products or brands..."
+            autocomplete="off"
+          >
+
+          <button id="heroSearchButton" type="button">
+            SEARCH
+          </button>
+
+        </div>
+
+        <a href="#finds" class="heroButton">
+          EXPLORE FINDS
+          <span>→</span>
+        </a>
+
+      </div>
+
+      <div class="heroVisual">
+
+        <div class="heroCard heroCardLarge">
+          <div class="heroCardText">
+            <span>CURATED</span>
+            <strong>FINDS</strong>
+          </div>
+        </div>
+
+        <div class="heroCard heroCardSmall">
+          <span>8</span>
+          <small>AGENTS</small>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ================= CATEGORY SECTION ================= -->
+
+  <section class="categorySection">
+
+    <div class="sectionContainer">
+
+      <div class="sectionHeader">
+
+        <div>
+          <span class="sectionEyebrow">EXPLORE</span>
+          <h2>Trending Categories</h2>
+        </div>
+
+        <a href="#finds" class="sectionLink">
+          VIEW ALL →
+        </a>
+
+      </div>
+
+      <div class="categoryTiles" id="categoryTiles"></div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ================= FINDS ================= -->
+
+  <main id="finds">
+
+    <section class="findsSection">
+
+      <div class="sectionContainer">
+
+        <div class="sectionHeader findsHeader">
+
+          <div>
+            <span class="sectionEyebrow">DISCOVER</span>
+            <h2>Newest Finds</h2>
+          </div>
+
+          <div class="findsControls">
+
+            <input
+              id="searchInput"
+              type="search"
+              placeholder="Search products..."
+              autocomplete="off"
+            >
+
+            <select id="desktopAgentSelect" aria-label="Choose agent">
+              <option value="litbuy">LITBUY</option>
+              <option value="oopbuy">OOPBUY</option>
+              <option value="kakobuy">KAKOBUY</option>
+              <option value="hipobuy">HIPOBUY</option>
+              <option value="lovegobuy">LOVEGOBUY</option>
+              <option value="rizzitgo">RIZZITGO</option>
+              <option value="boonbuy">BOONBUY</option>
+              <option value="usfans">USFANS</option>
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <div class="categoryBar">
+
+          <div id="categoryNav"></div>
+
+          <button id="refreshBtn" type="button">
+            ↻ Refresh
+          </button>
+
+        </div>
+
+
+        <div class="productsInfo">
+          <span id="status">Loading products...</span>
+        </div>
+
+
+        <div id="productGrid"></div>
+
+
+        <div id="emptyMessage" class="empty" style="display:none;">
+          <div class="emptyIcon">⌕</div>
+          <h3>No products found</h3>
+          <p>Try another search or category.</p>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================= HOW IT WORKS ================= -->
+
+    <section class="howSection" id="howItWorks">
+
+      <div class="sectionContainer">
+
+        <div class="centerHeader">
+
+          <span class="sectionEyebrow">SIMPLE PROCESS</span>
+
+          <h2>How It Works</h2>
+
+          <p>
+            Find what you like, choose your preferred agent,
+            and shop in just a few steps.
+          </p>
+
+        </div>
+
+
+        <div class="stepsGrid">
+
+          <div class="stepCard">
+
+            <div class="stepNumber">01</div>
+
+            <div class="stepIcon">⌕</div>
+
+            <h3>Find a Product</h3>
+
+            <p>
+              Browse our curated finds or search for a specific
+              product or brand.
+            </p>
+
+          </div>
+
+
+          <div class="stepCard">
+
+            <div class="stepNumber">02</div>
+
+            <div class="stepIcon">↗</div>
+
+            <h3>Choose an Agent</h3>
+
+            <p>
+              Select the shopping agent you prefer from the
+              agent menu.
+            </p>
+
+          </div>
+
+
+          <div class="stepCard">
+
+            <div class="stepNumber">03</div>
+
+            <div class="stepIcon">✓</div>
+
+            <h3>Shop</h3>
+
+            <p>
+              Click the product button and continue directly
+              to your selected agent.
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================= ABOUT ================= -->
+
+    <section class="aboutSection" id="about">
+
+      <div class="sectionContainer">
+
+        <div class="aboutBox">
+
+          <div class="aboutMain">
+
+            <span class="sectionEyebrow">ABOUT BESTR3PS</span>
+
+            <h2>
+              Your shortcut to<br>
+              better finds.
+            </h2>
+
+            <p>
+              BESTR3PS brings products together in one simple,
+              searchable place. Discover products across multiple
+              categories and choose the shopping agent that fits you.
+            </p>
+
+          </div>
+
+
+          <div class="aboutFeatures">
+
+            <div class="feature">
+              <strong>01</strong>
+              <span>
+                <b>Curated Finds</b>
+                Discover products collected in one place.
+              </span>
+            </div>
+
+            <div class="feature">
+              <strong>02</strong>
+              <span>
+                <b>Fast Search</b>
+                Find products quickly with simple search.
+              </span>
+            </div>
+
+            <div class="feature">
+              <strong>03</strong>
+              <span>
+                <b>Multiple Agents</b>
+                Switch between available shopping agents.
+              </span>
+            </div>
+
+            <div class="feature">
+              <strong>04</strong>
+              <span>
+                <b>Mobile Friendly</b>
+                Browse BESTR3PS wherever you are.
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- ================= FOOTER ================= -->
+
+  <footer class="footer">
+
+    <div class="footerInner">
+
+      <div class="footerBrand">
+        <div class="footerLogo">BESTR3PS</div>
+        <p>Discover better finds.</p>
+      </div>
+
+      <div class="footerLinks">
+        <a href="#home">Home</a>
+        <a href="#finds">Finds</a>
+        <a href="#howItWorks">How It Works</a>
+        <a href="#about">About</a>
+      </div>
+
+    </div>
+
+    <div class="footerBottom">
+      <span>© 2026 BESTR3PS</span>
+      <span>Find it. Choose your agent. Shop.</span>
+    </div>
+
+  </footer>
+
+
+  <script src="app.js"></script>
 
 </body>
 </html>
