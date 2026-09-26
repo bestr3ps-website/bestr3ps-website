@@ -1661,3 +1661,94 @@ button {
   }
 
 }
+/* =====================================================
+   BESTR3PS PAGINATION
+   ===================================================== */
+
+.pagination {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  margin: 50px 0 20px;
+}
+
+.paginationButton {
+  appearance: none;
+  border: 1px solid #333;
+  background: #111;
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.paginationButton:hover:not(:disabled) {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+}
+
+.paginationButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.paginationInfo {
+  color: #888;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+
+.loadingState {
+  width: 100%;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  color: #888;
+}
+
+.loadingSpinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #333;
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: bestr3psSpin 0.8s linear infinite;
+}
+
+@keyframes bestr3psSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+@media (max-width: 600px) {
+
+  .pagination {
+    gap: 12px;
+    margin-top: 35px;
+  }
+
+  .paginationButton {
+    padding: 10px 14px;
+    font-size: 10px;
+  }
+
+  .paginationInfo {
+    font-size: 10px;
+  }
+
+}
