@@ -2,7 +2,8 @@ const API_URL =
   "https://script.google.com/macros/s/AKfycbx5yy3DL89m_w2pJXQXMM1QbQDvdMUZ-erwzpKE8XYG1-_vD6fzhhZtP1jfkP8ZtNKl/exec";
 
 let products = [];
-let categories = [
+
+const categories = [
   "SUMMER Pick",
   "SNEAKERS",
   "T-SHIRTS/SHORTS",
@@ -17,62 +18,41 @@ let currentAgent = "litbuy";
 
 
 // =====================================================
-// 对应 Google Sheet 中真正使用的 7 个 Sheet
-// =====================================================
-
-const SHEET_NAMES = {
-  "SUMMER Pick": "SUMMER Pick☀️2",
-  "SNEAKERS": "SNEAKERS 👟",
-  "T-SHIRTS/SHORTS": "👕 T-SHIRTS/SHORTS 🩳",
-  "HOODIE/PANTS": "🥼 HOODIE/PANTS 👖",
-  "DOWNJACKET": "DOWNJACKET❄️",
-  "ACCESSORIES": "ACCESSORIES 👜",
-  "BAGS": "BAGS"
-};
-
-
-// =====================================================
-// 读取 Google Sheet
+// 读取 Google Sheet 数据
 // =====================================================
 
 async function loadProducts() {
 
-  const status =
-    document.getElementById("status");
+  const status = document.getElementById("status");
 
-  status.textContent =
-    "Loading products...";
+  status.textContent = "Loading products...";
 
   try {
 
-    const response =
-      await fetch(
-        API_URL + "?time=" + Date.now()
-      );
+    const response = await fetch(
+      API_URL + "?time=" + Date.now()
+    );
 
     if (!response.ok) {
-      throw new Error(
-        "Failed to load data"
-      );
+      throw new Error("Failed to load data");
     }
 
-    const data =
-      await response.json();
+    const data = await response.json();
+
+    if (data.error) {
+      throw new Error(data.message || "Apps Script error");
+    }
 
     products = [];
 
 
     // =================================================
-    // 只读取我们指定的 7 个分类
+    // 只读取这 7 个分类
     // =================================================
 
     categories.forEach(category => {
 
-      const sheetName =
-        SHEET_NAMES[category];
-
-      const rows =
-        data[sheetName];
+      const rows = data[category];
 
       if (!Array.isArray(rows)) {
         return;
@@ -82,31 +62,26 @@ async function loadProducts() {
       rows.forEach(row => {
 
         const name =
-          String(
-            row.name || ""
-          ).trim();
+          String(row.name || "").trim();
 
         const price =
-          row.price || "";
+          row.price ?? "";
 
         const sourceUrl =
-          String(
-            row.sourceUrl || ""
-          ).trim();
+          String(row.sourceUrl || "").trim();
 
         const imageUrl =
-          String(
-            row.imageUrl || ""
-          ).trim();
+          String(row.imageUrl || "").trim();
 
 
-        // 没有链接的不显示
-        if (!sourceUrl) {
+        // 没有商品名称，不显示
+        if (!name) {
           return;
         }
 
-        // 没有名字的不显示
-        if (!name) {
+
+        // 没有真实商品链接，不显示
+        if (!sourceUrl) {
           return;
         }
 
@@ -123,10 +98,7 @@ async function loadProducts() {
 
           imageUrl: imageUrl,
 
-          productId:
-            extractProductId(
-              sourceUrl
-            )
+          productId: extractProductId(sourceUrl)
 
         });
 
@@ -168,10 +140,9 @@ function extractProductId(url) {
 
 
   // LITBUY
-  let match =
-    url.match(
-      /\/product\/[^/]+\/(\d+)/i
-    );
+  let match = url.match(
+    /\/product\/[^/]+\/(\d+)/i
+  );
 
   if (match) {
     return match[1];
@@ -179,10 +150,9 @@ function extractProductId(url) {
 
 
   // Weidian
-  match =
-    url.match(
-      /[?&]itemID=(\d+)/i
-    );
+  match = url.match(
+    /[?&]itemID=(\d+)/i
+  );
 
   if (match) {
     return match[1];
@@ -190,10 +160,9 @@ function extractProductId(url) {
 
 
   // goodsId
-  match =
-    url.match(
-      /[?&]goodsId=(\d+)/i
-    );
+  match = url.match(
+    /[?&]goodsId=(\d+)/i
+  );
 
   if (match) {
     return match[1];
@@ -201,10 +170,9 @@ function extractProductId(url) {
 
 
   // id
-  match =
-    url.match(
-      /[?&]id=(\d+)/i
-    );
+  match = url.match(
+    /[?&]id=(\d+)/i
+  );
 
   if (match) {
     return match[1];
@@ -221,8 +189,7 @@ function extractProductId(url) {
 
 function getProductUrl(product) {
 
-  const id =
-    product.productId;
+  const id = product.productId;
 
 
   if (!id) {
@@ -231,9 +198,7 @@ function getProductUrl(product) {
 
 
   // LITBUY
-  if (
-    currentAgent === "litbuy"
-  ) {
+  if (currentAgent === "litbuy") {
 
     return product.sourceUrl;
 
@@ -241,9 +206,7 @@ function getProductUrl(product) {
 
 
   // OOPBUY
-  if (
-    currentAgent === "oopbuy"
-  ) {
+  if (currentAgent === "oopbuy") {
 
     return (
       "https://oopbuy.com/product/weidian/" +
@@ -254,9 +217,7 @@ function getProductUrl(product) {
 
 
   // KAKOBUY
-  if (
-    currentAgent === "kakobuy"
-  ) {
+  if (currentAgent === "kakobuy") {
 
     const weidianUrl =
       "https://weidian.com/item.html?itemID=" +
@@ -264,18 +225,14 @@ function getProductUrl(product) {
 
     return (
       "https://item.kakobuy.com/item/details?url=" +
-      encodeURIComponent(
-        weidianUrl
-      )
+      encodeURIComponent(weidianUrl)
     );
 
   }
 
 
   // HIPOBUY
-  if (
-    currentAgent === "hipobuy"
-  ) {
+  if (currentAgent === "hipobuy") {
 
     return (
       "https://hipobuy.com/product/weidian/" +
@@ -286,9 +243,7 @@ function getProductUrl(product) {
 
 
   // LOVEGOBUY
-  if (
-    currentAgent === "lovegobuy"
-  ) {
+  if (currentAgent === "lovegobuy") {
 
     return (
       "https://lovegobuy.com/product?id=" +
@@ -300,9 +255,7 @@ function getProductUrl(product) {
 
 
   // RIZZITGO
-  if (
-    currentAgent === "rizzitgo"
-  ) {
+  if (currentAgent === "rizzitgo") {
 
     return (
       "https://rizzitgo.com/detail-page/?goodsId=" +
@@ -314,9 +267,7 @@ function getProductUrl(product) {
 
 
   // BOONBUY
-  if (
-    currentAgent === "boonbuy"
-  ) {
+  if (currentAgent === "boonbuy") {
 
     return (
       "https://boonbuy.com/product/2/" +
@@ -327,9 +278,7 @@ function getProductUrl(product) {
 
 
   // USFANS
-  if (
-    currentAgent === "usfans"
-  ) {
+  if (currentAgent === "usfans") {
 
     return (
       "https://usfans.com/product/3/" +
@@ -351,18 +300,14 @@ function getProductUrl(product) {
 function renderCategories() {
 
   const nav =
-    document.getElementById(
-      "categoryNav"
-    );
+    document.getElementById("categoryNav");
 
   nav.innerHTML = "";
 
 
   // ALL
   const allButton =
-    document.createElement(
-      "button"
-    );
+    document.createElement("button");
 
   allButton.className =
     "categoryButton " +
@@ -372,15 +317,43 @@ function renderCategories() {
         : ""
     );
 
-  allButton.textContent =
-    "ALL";
+  allButton.textContent = "ALL";
 
 
-  allButton.onclick =
-    function() {
+  allButton.onclick = function() {
 
-      currentCategory =
-        "ALL";
+    currentCategory = "ALL";
+
+    renderCategories();
+
+    renderProducts();
+
+  };
+
+
+  nav.appendChild(allButton);
+
+
+  // 7 个正式分类
+  categories.forEach(category => {
+
+    const button =
+      document.createElement("button");
+
+    button.className =
+      "categoryButton " +
+      (
+        currentCategory === category
+          ? "active"
+          : ""
+      );
+
+    button.textContent = category;
+
+
+    button.onclick = function() {
+
+      currentCategory = category;
 
       renderCategories();
 
@@ -389,51 +362,9 @@ function renderCategories() {
     };
 
 
-  nav.appendChild(
-    allButton
-  );
+    nav.appendChild(button);
 
-
-  // 7 个真正的分类
-  categories.forEach(
-    category => {
-
-      const button =
-        document.createElement(
-          "button"
-        );
-
-      button.className =
-        "categoryButton " +
-        (
-          currentCategory === category
-            ? "active"
-            : ""
-        );
-
-      button.textContent =
-        category;
-
-
-      button.onclick =
-        function() {
-
-          currentCategory =
-            category;
-
-          renderCategories();
-
-          renderProducts();
-
-        };
-
-
-      nav.appendChild(
-        button
-      );
-
-    }
-  );
+  });
 
 }
 
@@ -445,15 +376,10 @@ function renderCategories() {
 function renderProducts() {
 
   const grid =
-    document.getElementById(
-      "productGrid"
-    );
-
+    document.getElementById("productGrid");
 
   const searchInput =
-    document.getElementById(
-      "searchInput"
-    );
+    document.getElementById("searchInput");
 
 
   const search =
@@ -468,256 +394,196 @@ function renderProducts() {
 
 
   const filtered =
-    products.filter(
-      product => {
+    products.filter(product => {
 
-        const categoryMatch =
-          currentCategory === "ALL" ||
-          product.category ===
-            currentCategory;
+      const categoryMatch =
+        currentCategory === "ALL" ||
+        product.category === currentCategory;
 
 
-        const searchMatch =
-          !search ||
-          product.name
-            .toLowerCase()
-            .includes(search) ||
-          product.category
-            .toLowerCase()
-            .includes(search);
+      const searchMatch =
+        !search ||
+        product.name
+          .toLowerCase()
+          .includes(search);
 
 
-        return (
-          categoryMatch &&
-          searchMatch
-        );
+      return (
+        categoryMatch &&
+        searchMatch
+      );
 
-      }
-    );
+    });
 
 
   const empty =
-    document.getElementById(
-      "emptyMessage"
-    );
+    document.getElementById("emptyMessage");
 
 
-  if (
-    filtered.length === 0
-  ) {
+  if (filtered.length === 0) {
 
-    empty.style.display =
-      "block";
+    empty.style.display = "block";
 
   } else {
 
-    empty.style.display =
-      "none";
+    empty.style.display = "none";
 
   }
 
 
-  filtered.forEach(
-    product => {
+  // =================================================
+  // 商品卡片
+  // =================================================
 
-      const card =
-        document.createElement(
-          "div"
-        );
+  filtered.forEach(product => {
 
-      card.className =
-        "productCard";
+    const card =
+      document.createElement("div");
 
-
-      // =================================================
-      // 图片
-      // =================================================
-
-      const image =
-        document.createElement(
-          "div"
-        );
-
-      image.className =
-        "productImage";
+    card.className = "productCard";
 
 
-      if (product.imageUrl) {
+    // =================================================
+    // 商品图片
+    // =================================================
 
-        const img =
-          document.createElement(
-            "img"
-          );
+    const image =
+      document.createElement("div");
 
-        img.src =
-          product.imageUrl;
-
-        img.alt =
-          product.name;
-
-        img.loading =
-          "lazy";
-
-        img.onerror =
-          function() {
-
-            this.style.display =
-              "none";
-
-            image.textContent =
-              "IMAGE";
-
-          };
+    image.className = "productImage";
 
 
-        image.appendChild(
-          img
-        );
+    if (product.imageUrl) {
 
-      } else {
+      const img =
+        document.createElement("img");
 
-        image.textContent =
-          "IMAGE";
+      img.src = product.imageUrl;
 
-      }
+      img.alt = product.name;
 
-
-      // =================================================
-      // 商品信息
-      // =================================================
-
-      const info =
-        document.createElement(
-          "div"
-        );
-
-      info.className =
-        "productInfo";
+      img.loading = "lazy";
 
 
-      const name =
-        document.createElement(
-          "div"
-        );
+      img.onerror = function() {
 
-      name.className =
-        "productName";
+        this.style.display = "none";
 
-      name.textContent =
-        product.name;
+        image.textContent = "IMAGE";
+
+      };
 
 
-      const price =
-        document.createElement(
-          "div"
-        );
+      image.appendChild(img);
 
-      price.className =
-        "productPrice";
+    } else {
 
-
-      if (
-        product.price !== "" &&
-        product.price !== null &&
-        product.price !== undefined
-      ) {
-
-        const priceText =
-          String(product.price);
-
-        price.textContent =
-          priceText.startsWith("$")
-            ? priceText
-            : "$" + priceText;
-
-      }
-
-
-      // =================================================
-      // VIEW PRODUCT
-      // =================================================
-
-      const link =
-        document.createElement(
-          "a"
-        );
-
-      link.className =
-        "viewButton";
-
-      link.textContent =
-        "VIEW PRODUCT";
-
-      link.href =
-        getProductUrl(
-          product
-        );
-
-      link.target =
-        "_blank";
-
-      link.rel =
-        "noopener noreferrer";
-
-
-      // =================================================
-      // 分类
-      // =================================================
-
-      const category =
-        document.createElement(
-          "div"
-        );
-
-      category.className =
-        "productCategory";
-
-      category.textContent =
-        product.category;
-
-
-      info.appendChild(
-        name
-      );
-
-      info.appendChild(
-        price
-      );
-
-      info.appendChild(
-        link
-      );
-
-      info.appendChild(
-        category
-      );
-
-
-      card.appendChild(
-        image
-      );
-
-      card.appendChild(
-        info
-      );
-
-
-      grid.appendChild(
-        card
-      );
+      image.textContent = "IMAGE";
 
     }
-  );
 
+
+    // =================================================
+    // 商品信息
+    // =================================================
+
+    const info =
+      document.createElement("div");
+
+    info.className = "productInfo";
+
+
+    // 商品名称
+    const name =
+      document.createElement("div");
+
+    name.className = "productName";
+
+    name.textContent = product.name;
+
+
+    // 商品价格
+    const price =
+      document.createElement("div");
+
+    price.className = "productPrice";
+
+
+    if (
+      product.price !== "" &&
+      product.price !== null &&
+      product.price !== undefined
+    ) {
+
+      const priceText =
+        String(product.price);
+
+      price.textContent =
+        priceText.startsWith("$")
+          ? priceText
+          : "$" + priceText;
+
+    }
+
+
+    // 商品链接
+    const link =
+      document.createElement("a");
+
+    link.className = "viewButton";
+
+    link.textContent = "VIEW PRODUCT";
+
+    link.href =
+      getProductUrl(product);
+
+    link.target = "_blank";
+
+    link.rel =
+      "noopener noreferrer";
+
+
+    // 分类
+    const category =
+      document.createElement("div");
+
+    category.className =
+      "productCategory";
+
+    category.textContent =
+      product.category;
+
+
+    // 加入商品信息
+    info.appendChild(name);
+
+    info.appendChild(price);
+
+    info.appendChild(link);
+
+    info.appendChild(category);
+
+
+    // 加入商品卡片
+    card.appendChild(image);
+
+    card.appendChild(info);
+
+
+    grid.appendChild(card);
+
+  });
+
+
+  // =================================================
+  // 商品数量
+  // =================================================
 
   const status =
-    document.getElementById(
-      "status"
-    );
+    document.getElementById("status");
 
   status.textContent =
-    filtered.length +
-    " products";
+    filtered.length + " products";
 
 }
 
@@ -727,9 +593,7 @@ function renderProducts() {
 // =====================================================
 
 document
-  .getElementById(
-    "searchInput"
-  )
+  .getElementById("searchInput")
   .addEventListener(
     "input",
     renderProducts
@@ -737,13 +601,11 @@ document
 
 
 // =====================================================
-// Agent
+// Agent 切换
 // =====================================================
 
 document
-  .getElementById(
-    "agentSelect"
-  )
+  .getElementById("agentSelect")
   .addEventListener(
     "change",
     function(event) {
@@ -762,9 +624,7 @@ document
 // =====================================================
 
 document
-  .getElementById(
-    "refreshBtn"
-  )
+  .getElementById("refreshBtn")
   .addEventListener(
     "click",
     loadProducts
@@ -772,7 +632,7 @@ document
 
 
 // =====================================================
-// 开始读取
+// 开始读取 Google Sheet
 // =====================================================
 
 loadProducts();
