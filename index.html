@@ -17,7 +17,7 @@
 
   <meta
     name="theme-color"
-    content="#090909"
+    content="#050505"
   >
 
   <title>BESTR3PS — Discover Better Finds</title>
@@ -39,91 +39,109 @@ HEADER
 
 <header class="header">
 
-  <a
-    href="#home"
-    class="logo"
-    id="homeLogo"
-  >
-    BEST<span>R3PS</span>
-  </a>
+  <div class="headerInner">
 
-
-  <nav class="mainNav">
-
-    <a href="#home">
-      Home
+    <a
+      href="#home"
+      class="logo"
+      id="homeLogo"
+    >
+      BEST<span>R3PS</span>
     </a>
 
-    <a href="#finds">
-      Finds
-    </a>
 
-    <a href="#howItWorks">
-      How It Works
-    </a>
+    <nav class="mainNav">
 
-    <a href="#about">
-      About
-    </a>
+      <a href="#home">
+        Home
+      </a>
 
-  </nav>
+      <a href="#finds">
+        Finds
+      </a>
+
+      <a href="#howItWorks">
+        How It Works
+      </a>
+
+      <a href="#about">
+        About
+      </a>
+
+    </nav>
 
 
-  <div class="headerActions">
+    <div class="headerActions">
 
-    <div class="headerAgentLabel">
-      SHOP WITH
+      <a
+        class="headerSocial discordHeader"
+        href="https://discord.gg/Z4y42Tshhm"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        DISCORD
+      </a>
+
+      <a
+        class="headerSocial whatsappHeader"
+        href="https://wa.me/8619927561270"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        WHATSAPP
+      </a>
+
+      <select
+        id="agentSelect"
+        aria-label="Choose shopping agent"
+      >
+
+        <option value="litbuy">
+          LITBUY
+        </option>
+
+        <option value="oopbuy">
+          OOPBUY
+        </option>
+
+        <option value="kakobuy">
+          KAKOBUY
+        </option>
+
+        <option value="hipobuy">
+          HIPOBUY
+        </option>
+
+        <option value="lovegobuy">
+          LOVEGOBUY
+        </option>
+
+        <option value="rizzitgo">
+          RIZZITGO
+        </option>
+
+        <option value="boonbuy">
+          BOONBUY
+        </option>
+
+        <option value="usfans">
+          USFANS
+        </option>
+
+      </select>
+
+
+      <button
+        class="mobileMenuButton"
+        id="mobileMenuButton"
+        type="button"
+        aria-label="Open menu"
+        aria-expanded="false"
+      >
+        ☰
+      </button>
+
     </div>
-
-
-    <select
-      id="agentSelect"
-      aria-label="Choose shopping agent"
-    >
-
-      <option value="litbuy">
-        LITBUY
-      </option>
-
-      <option value="oopbuy">
-        OOPBUY
-      </option>
-
-      <option value="kakobuy">
-        KAKOBUY
-      </option>
-
-      <option value="hipobuy">
-        HIPOBUY
-      </option>
-
-      <option value="lovegobuy">
-        LOVEGOBUY
-      </option>
-
-      <option value="rizzitgo">
-        RIZZITGO
-      </option>
-
-      <option value="boonbuy">
-        BOONBUY
-      </option>
-
-      <option value="usfans">
-        USFANS
-      </option>
-
-    </select>
-
-
-    <button
-      class="mobileMenuButton"
-      id="mobileMenuButton"
-      type="button"
-      aria-label="Open menu"
-    >
-      ☰
-    </button>
 
   </div>
 
@@ -155,17 +173,37 @@ MOBILE NAV
     About
   </a>
 
+  <div class="mobileContact">
+
+    <a
+      href="https://discord.gg/Z4y42Tshhm"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Discord
+    </a>
+
+    <a
+      href="https://wa.me/8619927561270"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      WhatsApp
+    </a>
+
+  </div>
+
 </div>
 
 
 <!-- =====================================================
-CONTACT
+CONTACT FLOATING
 ===================================================== -->
 
 <div class="contactButtons">
 
   <a
-    class="contactButton discordButton"
+    class="contactButton"
     href="https://discord.gg/Z4y42Tshhm"
     target="_blank"
     rel="noopener noreferrer"
@@ -191,7 +229,7 @@ CONTACT
 
 
   <a
-    class="contactButton whatsappButton"
+    class="contactButton"
     href="https://wa.me/8619927561270"
     target="_blank"
     rel="noopener noreferrer"
@@ -228,21 +266,15 @@ HERO
 >
 
   <div class="heroGlow heroGlowOne"></div>
-
   <div class="heroGlow heroGlowTwo"></div>
 
-
   <div class="heroInner">
-
 
     <div class="heroText">
 
       <div class="heroLabel">
-
         <span></span>
-
         BESTR3PS FINDS
-
       </div>
 
 
@@ -312,59 +344,55 @@ HERO
     </div>
 
 
-    <!-- HERO VISUAL -->
-
     <div class="heroVisual">
 
-      <div class="heroVisualGrid"></div>
+      <div class="heroVisualGrid">
 
-
-      <div class="heroCard heroCardLarge">
-
-        <div class="heroCardTop">
-
-          <span>
-            01
-          </span>
-
-          <span>
-            BESTR3PS
-          </span>
-
+        <div class="heroVisualBlock blockOne">
+          <span>01</span>
+          <strong>SNEAKERS</strong>
         </div>
 
-
-        <div class="heroCardCenter">
-
-          <span>
-            CURATED
-          </span>
-
-          <strong>
-            FINDS
-          </strong>
-
+        <div class="heroVisualBlock blockTwo">
+          <span>02</span>
+          <strong>HOODIES</strong>
         </div>
 
-
-        <div class="heroCardBottom">
-
-          <span>
-            DISCOVER
-          </span>
-
-          <span>
-            2026
-          </span>
-
+        <div class="heroVisualBlock blockThree">
+          <span>03</span>
+          <strong>BAGS</strong>
         </div>
+
+        <div class="heroVisualBlock blockFour">
+          <span>04</span>
+          <strong>FINDS</strong>
+        </div>
+
+      </div>
+
+
+      <div class="heroCardLarge">
+
+        <span>
+          BESTR3PS
+        </span>
+
+        <strong>
+          CURATED
+          <br>
+          FINDS
+        </strong>
+
+        <small>
+          DISCOVER / 2026
+        </small>
 
       </div>
 
 
       <div class="heroCardSmall">
 
-        <span class="smallNumber">
+        <span>
           8
         </span>
 
@@ -400,7 +428,6 @@ CATEGORY
 
   <div class="sectionContainer">
 
-
     <div class="sectionHeader">
 
       <div>
@@ -432,7 +459,6 @@ CATEGORY
       id="categoryTiles"
     ></div>
 
-
   </div>
 
 </section>
@@ -447,7 +473,6 @@ FINDS
   <section class="findsSection">
 
     <div class="sectionContainer">
-
 
       <div class="sectionHeader findsHeader">
 
@@ -465,7 +490,6 @@ FINDS
 
 
         <div class="findsControls">
-
 
           <div class="searchBox">
 
@@ -529,7 +553,9 @@ FINDS
 
       <div class="categoryBar">
 
-        <div id="categoryNav"></div>
+        <div
+          id="categoryNav"
+        ></div>
 
 
         <button
@@ -559,15 +585,14 @@ FINDS
 
       <div id="productGrid"></div>
 
-
     </div>
 
   </section>
 
 
-  <!-- ===================================================
-  HOW IT WORKS
-  =================================================== -->
+<!-- =====================================================
+HOW IT WORKS
+===================================================== -->
 
   <section
     class="howSection"
@@ -575,7 +600,6 @@ FINDS
   >
 
     <div class="sectionContainer">
-
 
       <div class="centerHeader">
 
@@ -596,7 +620,6 @@ FINDS
 
 
       <div class="stepsGrid">
-
 
         <div class="stepCard">
 
@@ -658,11 +681,10 @@ FINDS
 
           <p>
             Click the product button and continue directly
-            to your selected agent.
+            to the product page.
           </p>
 
         </div>
-
 
       </div>
 
@@ -671,9 +693,9 @@ FINDS
   </section>
 
 
-  <!-- ===================================================
-  ABOUT
-  =================================================== -->
+<!-- =====================================================
+ABOUT
+===================================================== -->
 
   <section
     class="aboutSection"
@@ -682,9 +704,7 @@ FINDS
 
     <div class="sectionContainer">
 
-
       <div class="aboutBox">
-
 
         <div class="aboutMain">
 
@@ -709,7 +729,7 @@ FINDS
           <p>
             BESTR3PS brings products together in one simple,
             searchable place. Discover products across multiple
-            categories and choose the shopping agent that fits you.
+            categories and access the products through direct links.
           </p>
 
 
@@ -725,7 +745,6 @@ FINDS
 
 
         <div class="aboutFeatures">
-
 
           <div class="feature">
 
@@ -802,7 +821,6 @@ FINDS
 
           </div>
 
-
         </div>
 
       </div>
@@ -821,7 +839,6 @@ FOOTER
 <footer class="footer">
 
   <div class="footerInner">
-
 
     <div class="footerBrand">
 
@@ -876,7 +893,6 @@ FOOTER
       </a>
 
     </div>
-
 
   </div>
 
