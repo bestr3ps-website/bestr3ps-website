@@ -2,10 +2,38 @@ const API_URL =
   "https://script.google.com/macros/s/AKfycbx5yy3DL89m_w2pJXQXMM1QbQDvdMUZ-erwzpKE8XYG1-_vD6fzhhZtP1jfkP8ZtNKl/exec";
 
 let products = [];
-let categories = [];
+let categories = [
+  "SUMMER Pick",
+  "SNEAKERS",
+  "T-SHIRTS/SHORTS",
+  "HOODIE/PANTS",
+  "DOWNJACKET",
+  "ACCESSORIES",
+  "BAGS"
+];
+
 let currentCategory = "ALL";
 let currentAgent = "litbuy";
 
+
+// =====================================================
+// 对应 Google Sheet 中真正使用的 7 个 Sheet
+// =====================================================
+
+const SHEET_NAMES = {
+  "SUMMER Pick": "SUMMER Pick☀️2",
+  "SNEAKERS": "SNEAKERS 👟",
+  "T-SHIRTS/SHORTS": "👕 T-SHIRTS/SHORTS 🩳",
+  "HOODIE/PANTS": "🥼 HOODIE/PANTS 👖",
+  "DOWNJACKET": "DOWNJACKET❄️",
+  "ACCESSORIES": "ACCESSORIES 👜",
+  "BAGS": "BAGS"
+};
+
+
+// =====================================================
+// 读取 Google Sheet
+// =====================================================
 
 async function loadProducts() {
 
@@ -33,14 +61,18 @@ async function loadProducts() {
 
     products = [];
 
-    categories =
-      Object.keys(data);
 
+    // =================================================
+    // 只读取我们指定的 7 个分类
+    // =================================================
 
     categories.forEach(category => {
 
+      const sheetName =
+        SHEET_NAMES[category];
+
       const rows =
-        data[category];
+        data[sheetName];
 
       if (!Array.isArray(rows)) {
         return;
@@ -68,12 +100,12 @@ async function loadProducts() {
           ).trim();
 
 
-        // 没有真实链接的不显示
+        // 没有链接的不显示
         if (!sourceUrl) {
           return;
         }
 
-        // 没有商品名称的不显示
+        // 没有名字的不显示
         if (!name) {
           return;
         }
@@ -124,6 +156,9 @@ async function loadProducts() {
 }
 
 
+// =====================================================
+// 提取商品 ID
+// =====================================================
 
 function extractProductId(url) {
 
@@ -180,6 +215,9 @@ function extractProductId(url) {
 }
 
 
+// =====================================================
+// 根据 Agent 生成商品链接
+// =====================================================
 
 function getProductUrl(product) {
 
@@ -192,10 +230,7 @@ function getProductUrl(product) {
   }
 
 
-  // =====================
   // LITBUY
-  // =====================
-
   if (
     currentAgent === "litbuy"
   ) {
@@ -205,10 +240,7 @@ function getProductUrl(product) {
   }
 
 
-  // =====================
   // OOPBUY
-  // =====================
-
   if (
     currentAgent === "oopbuy"
   ) {
@@ -221,10 +253,7 @@ function getProductUrl(product) {
   }
 
 
-  // =====================
   // KAKOBUY
-  // =====================
-
   if (
     currentAgent === "kakobuy"
   ) {
@@ -243,10 +272,7 @@ function getProductUrl(product) {
   }
 
 
-  // =====================
   // HIPOBUY
-  // =====================
-
   if (
     currentAgent === "hipobuy"
   ) {
@@ -259,10 +285,7 @@ function getProductUrl(product) {
   }
 
 
-  // =====================
   // LOVEGOBUY
-  // =====================
-
   if (
     currentAgent === "lovegobuy"
   ) {
@@ -276,10 +299,7 @@ function getProductUrl(product) {
   }
 
 
-  // =====================
   // RIZZITGO
-  // =====================
-
   if (
     currentAgent === "rizzitgo"
   ) {
@@ -293,10 +313,7 @@ function getProductUrl(product) {
   }
 
 
-  // =====================
   // BOONBUY
-  // =====================
-
   if (
     currentAgent === "boonbuy"
   ) {
@@ -309,10 +326,7 @@ function getProductUrl(product) {
   }
 
 
-  // =====================
   // USFANS
-  // =====================
-
   if (
     currentAgent === "usfans"
   ) {
@@ -330,6 +344,9 @@ function getProductUrl(product) {
 }
 
 
+// =====================================================
+// 分类按钮
+// =====================================================
 
 function renderCategories() {
 
@@ -341,6 +358,7 @@ function renderCategories() {
   nav.innerHTML = "";
 
 
+  // ALL
   const allButton =
     document.createElement(
       "button"
@@ -376,6 +394,7 @@ function renderCategories() {
   );
 
 
+  // 7 个真正的分类
   categories.forEach(
     category => {
 
@@ -419,6 +438,9 @@ function renderCategories() {
 }
 
 
+// =====================================================
+// 显示商品
+// =====================================================
 
 function renderProducts() {
 
@@ -507,9 +529,9 @@ function renderProducts() {
         "productCard";
 
 
-      // =====================
-      // PRODUCT IMAGE
-      // =====================
+      // =================================================
+      // 图片
+      // =================================================
 
       const image =
         document.createElement(
@@ -538,12 +560,15 @@ function renderProducts() {
 
         img.onerror =
           function() {
+
             this.style.display =
               "none";
 
             image.textContent =
               "IMAGE";
+
           };
+
 
         image.appendChild(
           img
@@ -557,9 +582,9 @@ function renderProducts() {
       }
 
 
-      // =====================
-      // PRODUCT INFO
-      // =====================
+      // =================================================
+      // 商品信息
+      // =================================================
 
       const info =
         document.createElement(
@@ -608,6 +633,10 @@ function renderProducts() {
       }
 
 
+      // =================================================
+      // VIEW PRODUCT
+      // =================================================
+
       const link =
         document.createElement(
           "a"
@@ -630,6 +659,10 @@ function renderProducts() {
       link.rel =
         "noopener noreferrer";
 
+
+      // =================================================
+      // 分类
+      // =================================================
 
       const category =
         document.createElement(
@@ -689,6 +722,9 @@ function renderProducts() {
 }
 
 
+// =====================================================
+// 搜索
+// =====================================================
 
 document
   .getElementById(
@@ -699,6 +735,10 @@ document
     renderProducts
   );
 
+
+// =====================================================
+// Agent
+// =====================================================
 
 document
   .getElementById(
@@ -717,6 +757,10 @@ document
   );
 
 
+// =====================================================
+// Refresh
+// =====================================================
+
 document
   .getElementById(
     "refreshBtn"
@@ -726,5 +770,9 @@ document
     loadProducts
   );
 
+
+// =====================================================
+// 开始读取
+// =====================================================
 
 loadProducts();
