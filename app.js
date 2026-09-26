@@ -62,13 +62,18 @@ async function loadProducts() {
             row.sourceUrl || ""
           ).trim();
 
+        const imageUrl =
+          String(
+            row.imageUrl || ""
+          ).trim();
 
-        // 没有真实链接的内容不显示
+
+        // 没有真实链接的不显示
         if (!sourceUrl) {
           return;
         }
 
-        // 没有商品名称不显示
+        // 没有商品名称的不显示
         if (!name) {
           return;
         }
@@ -83,6 +88,8 @@ async function loadProducts() {
           price: price,
 
           sourceUrl: sourceUrl,
+
+          imageUrl: imageUrl,
 
           productId:
             extractProductId(
@@ -185,7 +192,6 @@ function getProductUrl(product) {
   }
 
 
-
   // =====================
   // LITBUY
   // =====================
@@ -197,7 +203,6 @@ function getProductUrl(product) {
     return product.sourceUrl;
 
   }
-
 
 
   // =====================
@@ -214,7 +219,6 @@ function getProductUrl(product) {
     );
 
   }
-
 
 
   // =====================
@@ -239,7 +243,6 @@ function getProductUrl(product) {
   }
 
 
-
   // =====================
   // HIPOBUY
   // =====================
@@ -254,7 +257,6 @@ function getProductUrl(product) {
     );
 
   }
-
 
 
   // =====================
@@ -274,7 +276,6 @@ function getProductUrl(product) {
   }
 
 
-
   // =====================
   // RIZZITGO
   // =====================
@@ -292,7 +293,6 @@ function getProductUrl(product) {
   }
 
 
-
   // =====================
   // BOONBUY
   // =====================
@@ -307,7 +307,6 @@ function getProductUrl(product) {
     );
 
   }
-
 
 
   // =====================
@@ -508,6 +507,10 @@ function renderProducts() {
         "productCard";
 
 
+      // =====================
+      // PRODUCT IMAGE
+      // =====================
+
       const image =
         document.createElement(
           "div"
@@ -516,9 +519,47 @@ function renderProducts() {
       image.className =
         "productImage";
 
-      image.textContent =
-        "IMAGE";
 
+      if (product.imageUrl) {
+
+        const img =
+          document.createElement(
+            "img"
+          );
+
+        img.src =
+          product.imageUrl;
+
+        img.alt =
+          product.name;
+
+        img.loading =
+          "lazy";
+
+        img.onerror =
+          function() {
+            this.style.display =
+              "none";
+
+            image.textContent =
+              "IMAGE";
+          };
+
+        image.appendChild(
+          img
+        );
+
+      } else {
+
+        image.textContent =
+          "IMAGE";
+
+      }
+
+
+      // =====================
+      // PRODUCT INFO
+      // =====================
 
       const info =
         document.createElement(
