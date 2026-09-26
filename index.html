@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
   <meta charset="UTF-8">
 
   <meta
@@ -10,315 +8,179 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <meta
-    name="description"
-    content="BESTR3PS — Discover curated finds and shop through your preferred agent."
+  <title>BESTR3PS — Better Finds</title>
+
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
   >
 
-  <meta
-    name="theme-color"
-    content="#050505"
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
   >
 
-  <title>BESTR3PS — Discover Better Finds</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  >
 
   <link
     rel="stylesheet"
     href="style.css"
   >
-
 </head>
-
 
 <body>
 
+  <!-- =========================
+       HEADER
+       ========================= -->
 
-<!-- =====================================================
-HEADER
-===================================================== -->
+  <header class="siteHeader">
 
-<header class="header">
-
-  <div class="headerInner">
-
-    <a
-      href="#home"
-      class="logo"
-      id="homeLogo"
-    >
-      BEST<span>R3PS</span>
-    </a>
-
-
-    <nav class="mainNav">
-
-      <a href="#home">
-        Home
-      </a>
-
-      <a href="#finds">
-        Finds
-      </a>
-
-      <a href="#howItWorks">
-        How It Works
-      </a>
-
-      <a href="#about">
-        About
-      </a>
-
-    </nav>
-
-
-    <div class="headerActions">
+    <div class="headerInner">
 
       <a
-        class="headerSocial discordHeader"
-        href="https://discord.gg/Z4y42Tshhm"
-        target="_blank"
-        rel="noopener noreferrer"
+        href="#home"
+        class="logo"
       >
-        DISCORD
+        BESTR3PS
       </a>
 
-      <a
-        class="headerSocial whatsappHeader"
-        href="https://wa.me/8619927561270"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        WHATSAPP
-      </a>
+      <nav class="mainNav">
 
-      <select
-        id="agentSelect"
-        aria-label="Choose shopping agent"
-      >
+        <a href="#home">
+          Home
+        </a>
 
-        <option value="litbuy">
-          LITBUY
-        </option>
+        <a href="#finds">
+          Finds
+        </a>
 
-        <option value="oopbuy">
-          OOPBUY
-        </option>
+        <a href="#howItWorks">
+          How It Works
+        </a>
 
-        <option value="kakobuy">
-          KAKOBUY
-        </option>
+        <a href="#about">
+          About
+        </a>
 
-        <option value="hipobuy">
-          HIPOBUY
-        </option>
+      </nav>
 
-        <option value="lovegobuy">
-          LOVEGOBUY
-        </option>
+      <div class="headerActions">
 
-        <option value="rizzitgo">
-          RIZZITGO
-        </option>
+        <a
+          href="https://discord.gg/Z4y42Tshhm"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="contactLink"
+        >
+          DISCORD
+        </a>
 
-        <option value="boonbuy">
-          BOONBUY
-        </option>
+        <a
+          href="https://wa.me/8619927561270"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="contactLink"
+        >
+          WHATSAPP
+        </a>
 
-        <option value="usfans">
-          USFANS
-        </option>
-
-      </select>
-
+      </div>
 
       <button
         class="mobileMenuButton"
         id="mobileMenuButton"
-        type="button"
         aria-label="Open menu"
-        aria-expanded="false"
       >
         ☰
       </button>
 
     </div>
 
-  </div>
-
-</header>
-
-
-<!-- =====================================================
-MOBILE NAV
-===================================================== -->
-
-<div
-  class="mobileNav"
-  id="mobileNav"
->
-
-  <a href="#home">
-    Home
-  </a>
-
-  <a href="#finds">
-    Finds
-  </a>
-
-  <a href="#howItWorks">
-    How It Works
-  </a>
-
-  <a href="#about">
-    About
-  </a>
-
-  <div class="mobileContact">
-
-    <a
-      href="https://discord.gg/Z4y42Tshhm"
-      target="_blank"
-      rel="noopener noreferrer"
+    <div
+      class="mobileNav"
+      id="mobileNav"
     >
-      Discord
-    </a>
 
-    <a
-      href="https://wa.me/8619927561270"
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      WhatsApp
-    </a>
+      <a href="#home">Home</a>
+      <a href="#finds">Finds</a>
+      <a href="#howItWorks">How It Works</a>
+      <a href="#about">About</a>
 
-  </div>
+      <div class="mobileContacts">
 
-</div>
-
-
-<!-- =====================================================
-CONTACT FLOATING
-===================================================== -->
-
-<div class="contactButtons">
-
-  <a
-    class="contactButton"
-    href="https://discord.gg/Z4y42Tshhm"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-
-    <span class="contactIcon">
-      D
-    </span>
-
-    <span class="contactText">
-
-      <small>
-        JOIN OUR
-      </small>
-
-      <strong>
-        DISCORD
-      </strong>
-
-    </span>
-
-  </a>
-
-
-  <a
-    class="contactButton"
-    href="https://wa.me/8619927561270"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-
-    <span class="contactIcon">
-      W
-    </span>
-
-    <span class="contactText">
-
-      <small>
-        CONTACT US
-      </small>
-
-      <strong>
-        WHATSAPP
-      </strong>
-
-    </span>
-
-  </a>
-
-</div>
-
-
-<!-- =====================================================
-HERO
-===================================================== -->
-
-<section
-  class="hero"
-  id="home"
->
-
-  <div class="heroGlow heroGlowOne"></div>
-  <div class="heroGlow heroGlowTwo"></div>
-
-  <div class="heroInner">
-
-    <div class="heroText">
-
-      <div class="heroLabel">
-        <span></span>
-        BESTR3PS FINDS
-      </div>
-
-
-      <h1>
-
-        Discover
-
-        <br>
-
-        <strong>
-          Better Finds<span>.</span>
-        </strong>
-
-      </h1>
-
-
-      <p>
-
-        Explore curated products, discover new finds,
-        and shop through the agent that works for you.
-
-      </p>
-
-
-      <div class="heroSearch">
-
-        <input
-          id="heroSearchInput"
-          type="search"
-          placeholder="Search products or brands..."
-          autocomplete="off"
+        <a
+          href="https://discord.gg/Z4y42Tshhm"
+          target="_blank"
+          rel="noopener noreferrer"
         >
+          DISCORD
+        </a>
 
-        <button
-          id="heroSearchButton"
-          type="button"
+        <a
+          href="https://wa.me/8619927561270"
+          target="_blank"
+          rel="noopener noreferrer"
         >
-          SEARCH
-        </button>
+          WHATSAPP
+        </a>
 
       </div>
 
+    </div>
 
-      <div class="heroActions">
+  </header>
+
+
+  <!-- =========================
+       HERO
+       ========================= -->
+
+  <main>
+
+    <section
+      class="hero"
+      id="home"
+    >
+
+      <div class="heroInner">
+
+        <div class="heroEyebrow">
+          BESTR3PS FINDS
+        </div>
+
+        <h1>
+          Discover
+          <span>Better Finds.</span>
+        </h1>
+
+        <p class="heroText">
+          Explore curated products, discover new finds,
+          and shop through the agent that works for you.
+        </p>
+
+        <div class="heroSearch">
+
+          <div class="searchIcon">
+            ⌕
+          </div>
+
+          <input
+            id="heroSearchInput"
+            type="text"
+            placeholder="Search products or brands..."
+            autocomplete="off"
+          >
+
+          <button id="heroSearchButton">
+            SEARCH
+          </button>
+
+        </div>
 
         <a
           href="#finds"
@@ -328,159 +190,214 @@ HERO
           <span>→</span>
         </a>
 
+      </div>
 
-        <div class="heroMiniInfo">
+    </section>
 
-          <span class="heroMiniDot"></span>
 
-          <span>
-            8 SHOPPING AGENTS
-          </span>
+    <!-- =========================
+         AGENTS
+         ========================= -->
 
+    <section class="agentsSection">
+
+      <div class="sectionTop">
+
+        <div class="sectionNumber">
+          01
+        </div>
+
+        <div>
+          <div class="sectionMiniTitle">
+            SHOPPING
+          </div>
+
+          <h2>
+            AGENTS
+          </h2>
         </div>
 
       </div>
 
-    </div>
+      <div class="agentsGrid">
 
+        <button
+          class="agentButton active"
+          data-agent="LITBUY"
+        >
+          LITBUY
+        </button>
 
-    <div class="heroVisual">
+        <button
+          class="agentButton"
+          data-agent="OOPBUY"
+        >
+          OOPBUY
+        </button>
 
-      <div class="heroVisualGrid">
+        <button
+          class="agentButton"
+          data-agent="KAKOBUY"
+        >
+          KAKOBUY
+        </button>
 
-        <div class="heroVisualBlock blockOne">
-          <span>01</span>
-          <strong>SNEAKERS</strong>
-        </div>
+        <button
+          class="agentButton"
+          data-agent="HIPOBUY"
+        >
+          HIPOBUY
+        </button>
 
-        <div class="heroVisualBlock blockTwo">
-          <span>02</span>
-          <strong>HOODIES</strong>
-        </div>
+        <button
+          class="agentButton"
+          data-agent="LOVEGOBUY"
+        >
+          LOVEGOBUY
+        </button>
 
-        <div class="heroVisualBlock blockThree">
-          <span>03</span>
-          <strong>BAGS</strong>
-        </div>
+        <button
+          class="agentButton"
+          data-agent="RIZZITGO"
+        >
+          RIZZITGO
+        </button>
 
-        <div class="heroVisualBlock blockFour">
-          <span>04</span>
-          <strong>FINDS</strong>
-        </div>
+        <button
+          class="agentButton"
+          data-agent="BOONBUY"
+        >
+          BOONBUY
+        </button>
 
-      </div>
-
-
-      <div class="heroCardLarge">
-
-        <span>
-          BESTR3PS
-        </span>
-
-        <strong>
-          CURATED
-          <br>
-          FINDS
-        </strong>
-
-        <small>
-          DISCOVER / 2026
-        </small>
-
-      </div>
-
-
-      <div class="heroCardSmall">
-
-        <span>
-          8
-        </span>
-
-        <small>
-          SHOPPING
-          <br>
-          AGENTS
-        </small>
+        <button
+          class="agentButton"
+          data-agent="USFANS"
+        >
+          USFANS
+        </button>
 
       </div>
 
-
-      <div class="heroFloatingTag">
-
-        <span></span>
-
-        NEW FINDS
-
-      </div>
-
-    </div>
-
-  </div>
-
-</section>
+    </section>
 
 
-<!-- =====================================================
-CATEGORY
-===================================================== -->
+    <!-- =========================
+         FINDS
+         ========================= -->
 
-<section class="categorySection">
+    <section
+      class="findsSection"
+      id="finds"
+    >
 
-  <div class="sectionContainer">
-
-    <div class="sectionHeader">
-
-      <div>
-
-        <span class="sectionEyebrow">
-          01 / EXPLORE
-        </span>
-
-        <h2>
-          Trending Categories
-        </h2>
-
-      </div>
-
-
-      <a
-        href="#finds"
-        class="sectionLink"
-      >
-        VIEW ALL
-        <span>→</span>
-      </a>
-
-    </div>
-
-
-    <div
-      class="categoryTiles"
-      id="categoryTiles"
-    ></div>
-
-  </div>
-
-</section>
-
-
-<!-- =====================================================
-FINDS
-===================================================== -->
-
-<main id="finds">
-
-  <section class="findsSection">
-
-    <div class="sectionContainer">
-
-      <div class="sectionHeader findsHeader">
+      <div class="findsIntro">
 
         <div>
 
-          <span class="sectionEyebrow">
+          <div class="sectionNumber">
+            01 / EXPLORE
+          </div>
+
+          <h2>
+            Trending Categories
+          </h2>
+
+        </div>
+
+        <button
+          id="viewAllButton"
+          class="textButton"
+        >
+          VIEW ALL →
+        </button>
+
+      </div>
+
+
+      <!-- CATEGORY NAV -->
+
+      <div
+        class="categoryGrid"
+        id="categoryGrid"
+      >
+
+        <button
+          class="categoryButton active"
+          data-category="ALL"
+        >
+          <span>00</span>
+          <strong>ALL FINDS</strong>
+        </button>
+
+        <button
+          class="categoryButton"
+          data-category="SNEAKERS"
+        >
+          <span>01</span>
+          <strong>SNEAKERS</strong>
+        </button>
+
+        <button
+          class="categoryButton"
+          data-category="T-SHIRTS/SHORTS"
+        >
+          <span>02</span>
+          <strong>T-SHIRTS/SHORTS</strong>
+        </button>
+
+        <button
+          class="categoryButton"
+          data-category="HOODIE/PANTS"
+        >
+          <span>03</span>
+          <strong>HOODIE/PANTS</strong>
+        </button>
+
+        <button
+          class="categoryButton"
+          data-category="DOWNJACKET"
+        >
+          <span>04</span>
+          <strong>DOWNJACKET</strong>
+        </button>
+
+        <button
+          class="categoryButton"
+          data-category="ACCESSORIES"
+        >
+          <span>05</span>
+          <strong>ACCESSORIES</strong>
+        </button>
+
+        <button
+          class="categoryButton"
+          data-category="BAGS"
+        >
+          <span>06</span>
+          <strong>BAGS</strong>
+        </button>
+
+        <button
+          class="categoryButton"
+          data-category="HOTSALE"
+        >
+          <span>07</span>
+          <strong>HOTSALE</strong>
+        </button>
+
+      </div>
+
+
+      <!-- PRODUCTS -->
+
+      <div class="productsHeader">
+
+        <div>
+
+          <div class="sectionNumber">
             02 / DISCOVER
-          </span>
+          </div>
 
           <h2>
             Newest Finds
@@ -488,434 +405,230 @@ FINDS
 
         </div>
 
-
-        <div class="findsControls">
+        <div class="productControls">
 
           <div class="searchBox">
 
-            <span class="searchIcon">
+            <span>
               ⌕
             </span>
 
             <input
               id="searchInput"
-              type="search"
+              type="text"
               placeholder="Search products..."
               autocomplete="off"
             >
 
           </div>
 
-
-          <select
-            id="desktopAgentSelect"
-            aria-label="Choose agent"
+          <button
+            id="refreshButton"
+            class="refreshButton"
           >
-
-            <option value="litbuy">
-              LITBUY
-            </option>
-
-            <option value="oopbuy">
-              OOPBUY
-            </option>
-
-            <option value="kakobuy">
-              KAKOBUY
-            </option>
-
-            <option value="hipobuy">
-              HIPOBUY
-            </option>
-
-            <option value="lovegobuy">
-              LOVEGOBUY
-            </option>
-
-            <option value="rizzitgo">
-              RIZZITGO
-            </option>
-
-            <option value="boonbuy">
-              BOONBUY
-            </option>
-
-            <option value="usfans">
-              USFANS
-            </option>
-
-          </select>
+            ↻ Refresh
+          </button>
 
         </div>
 
       </div>
 
 
-      <div class="categoryBar">
-
-        <div
-          id="categoryNav"
-        ></div>
-
-
-        <button
-          id="refreshBtn"
-          type="button"
-        >
-
-          <span>
-            ↻
-          </span>
-
-          Refresh
-
-        </button>
-
+      <div
+        id="productStatus"
+        class="productStatus"
+      >
+        Loading products...
       </div>
 
 
-      <div class="productsInfo">
+      <div
+        id="productGrid"
+        class="productGrid"
+      ></div>
 
-        <span id="status">
-          Loading products...
-        </span>
 
+      <div
+        id="pagination"
+        class="pagination"
+      ></div>
+
+    </section>
+
+
+    <!-- =========================
+         HOW IT WORKS
+         ========================= -->
+
+    <section
+      class="howSection"
+      id="howItWorks"
+    >
+
+      <div class="sectionNumber">
+        03 / SIMPLE PROCESS
       </div>
 
+      <h2>
+        How It Works
+      </h2>
 
-<div id="productGrid"></div>
-
-<div id="pagination" class="pagination"></div>
-
-    </div>
-
-  </section>
-
-
-<!-- =====================================================
-HOW IT WORKS
-===================================================== -->
-
-  <section
-    class="howSection"
-    id="howItWorks"
-  >
-
-    <div class="sectionContainer">
-
-      <div class="centerHeader">
-
-        <span class="sectionEyebrow">
-          03 / SIMPLE PROCESS
-        </span>
-
-        <h2>
-          How It Works
-        </h2>
-
-        <p>
-          Find what you like, choose your preferred agent,
-          and shop in just a few steps.
-        </p>
-
-      </div>
+      <p class="sectionDescription">
+        Find what you like, choose your preferred agent,
+        and shop in just a few steps.
+      </p>
 
 
       <div class="stepsGrid">
 
-        <div class="stepCard">
+        <div class="step">
 
-          <div class="stepNumber">
+          <span>
             01
-          </div>
-
-          <div class="stepIcon">
-            ⌕
-          </div>
+          </span>
 
           <h3>
             Find a Product
           </h3>
 
           <p>
-            Browse our curated finds or search for a specific
-            product or brand.
+            Browse our curated finds or search
+            for a specific product or brand.
           </p>
 
         </div>
 
 
-        <div class="stepCard">
+        <div class="step">
 
-          <div class="stepNumber">
+          <span>
             02
-          </div>
-
-          <div class="stepIcon">
-            ↗
-          </div>
+          </span>
 
           <h3>
             Choose an Agent
           </h3>
 
           <p>
-            Select the shopping agent you prefer from the
-            agent menu.
+            Select the shopping agent you prefer
+            from the agent menu.
           </p>
 
         </div>
 
 
-        <div class="stepCard">
+        <div class="step">
 
-          <div class="stepNumber">
+          <span>
             03
-          </div>
-
-          <div class="stepIcon">
-            ✓
-          </div>
+          </span>
 
           <h3>
             Shop
           </h3>
 
           <p>
-            Click the product button and continue directly
-            to the product page.
+            Click the product button and continue
+            directly to the product page.
           </p>
 
         </div>
 
+
       </div>
 
-    </div>
-
-  </section>
+    </section>
 
 
-<!-- =====================================================
-ABOUT
-===================================================== -->
+    <!-- =========================
+         ABOUT
+         ========================= -->
 
-  <section
-    class="aboutSection"
-    id="about"
-  >
+    <section
+      class="aboutSection"
+      id="about"
+    >
 
-    <div class="sectionContainer">
+      <div class="aboutNumber">
+        04 / ABOUT BESTR3PS
+      </div>
 
-      <div class="aboutBox">
+      <div class="aboutContent">
 
-        <div class="aboutMain">
+        <h2>
+          Your shortcut to
+          <span>better finds.</span>
+        </h2>
 
-          <span class="sectionEyebrow">
-            04 / ABOUT BESTR3PS
-          </span>
+        <p>
+          BESTR3PS brings products together in one
+          simple, searchable place. Discover products
+          across multiple categories and access the
+          products through direct links.
+        </p>
 
+        <a
+          href="#finds"
+          class="heroButton"
+        >
+          START EXPLORING
+          <span>→</span>
+        </a>
 
-          <h2>
-
-            Your shortcut to
-
-            <br>
-
-            <span>
-              better finds.
-            </span>
-
-          </h2>
-
-
-          <p>
-            BESTR3PS brings products together in one simple,
-            searchable place. Discover products across multiple
-            categories and access the products through direct links.
-          </p>
+      </div>
 
 
-          <a
-            href="#finds"
-            class="aboutButton"
-          >
-            START EXPLORING
-            <span>→</span>
-          </a>
+      <div class="aboutFeatures">
 
+        <div>
+          <strong>01</strong>
+          <h3>Curated Finds</h3>
+          <p>Discover products collected in one place.</p>
         </div>
 
+        <div>
+          <strong>02</strong>
+          <h3>Fast Search</h3>
+          <p>Find products quickly with simple search.</p>
+        </div>
 
-        <div class="aboutFeatures">
+        <div>
+          <strong>03</strong>
+          <h3>Multiple Agents</h3>
+          <p>Switch between available shopping agents.</p>
+        </div>
 
-          <div class="feature">
-
-            <strong>
-              01
-            </strong>
-
-            <span>
-
-              <b>
-                Curated Finds
-              </b>
-
-              Discover products collected in one place.
-
-            </span>
-
-          </div>
-
-
-          <div class="feature">
-
-            <strong>
-              02
-            </strong>
-
-            <span>
-
-              <b>
-                Fast Search
-              </b>
-
-              Find products quickly with simple search.
-
-            </span>
-
-          </div>
-
-
-          <div class="feature">
-
-            <strong>
-              03
-            </strong>
-
-            <span>
-
-              <b>
-                Multiple Agents
-              </b>
-
-              Switch between available shopping agents.
-
-            </span>
-
-          </div>
-
-
-          <div class="feature">
-
-            <strong>
-              04
-            </strong>
-
-            <span>
-
-              <b>
-                Mobile Friendly
-              </b>
-
-              Browse BESTR3PS wherever you are.
-
-            </span>
-
-          </div>
-
+        <div>
+          <strong>04</strong>
+          <h3>Mobile Friendly</h3>
+          <p>Browse BESTR3PS wherever you are.</p>
         </div>
 
       </div>
 
+    </section>
+
+  </main>
+
+
+  <!-- =========================
+       FOOTER
+       ========================= -->
+
+  <footer>
+
+    <div>
+      BESTR3PS
     </div>
 
-  </section>
-
-</main>
-
-
-<!-- =====================================================
-FOOTER
-===================================================== -->
-
-<footer class="footer">
-
-  <div class="footerInner">
-
-    <div class="footerBrand">
-
-      <div class="footerLogo">
-        BEST<span>R3PS</span>
-      </div>
-
-      <p>
-        Discover better finds.
-      </p>
-
+    <div>
+      CURATED FINDS / 2026
     </div>
 
-
-    <div class="footerLinks">
-
-      <a href="#home">
-        Home
-      </a>
-
-      <a href="#finds">
-        Finds
-      </a>
-
-      <a href="#howItWorks">
-        How It Works
-      </a>
-
-      <a href="#about">
-        About
-      </a>
-
-    </div>
+  </footer>
 
 
-    <div class="footerContact">
-
-      <a
-        href="https://discord.gg/Z4y42Tshhm"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Discord
-      </a>
-
-      <a
-        href="https://wa.me/8619927561270"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        WhatsApp
-      </a>
-
-    </div>
-
-  </div>
-
-
-  <div class="footerBottom">
-
-    <span>
-      © 2026 BESTR3PS
-    </span>
-
-    <span>
-      Find it. Choose your agent. Shop.
-    </span>
-
-  </div>
-
-</footer>
-
-
-<script src="app.js"></script>
+  <script src="app.js"></script>
 
 </body>
-
 </html>
