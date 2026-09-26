@@ -1,5 +1,5 @@
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbxn9DVmH7b3isG3CyaNEJ7b6DrGrLimfIc7YVX9YU1NkAftIfcQPNyFNKFP8ko_d7JX/exec";
+  "https://script.google.com/macros/s/AKfycbxn9DVmH7b3isG3CyaNEJ7b6DrGrLimfIcY7VX9YU1NkAftIfcQPNyFNKFP8ko_d7JX/exec";
 
 let products = [];
 
@@ -31,252 +31,135 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
-
 function escapeAttribute(value) {
   return escapeHtml(value);
 }
 
 
 // =========================================================
-// 加载商品
+// DOM
 // =========================================================
 
-async function loadProducts() {
-  const status = document.getElementById("status");
-
-  if (status) {
-    status.textContent = "Loading products...";
-  }
-
-  try {
-    const response = await fetch(
-      API_URL + "?time=" + Date.now(),
-      {
-        cache: "no-store"
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        "API request failed: " + response.status
-      );
-    }
-
-    const data = await response.json();
-
-    if (data.error) {
-      throw new Error(
-        data.message || "API returned an error"
-      );
-    }
-
-    products = [];
-
-    categories.forEach(category => {
-
-      const rows =
-        Array.isArray(data[category])
-          ? data[category]
-          : [];
-
-      rows.forEach(item => {
-
-        if (!item) return;
-
-        const name =
-          item.name || "";
-
-        const price =
-          item.price ?? "";
-
-        const sourceUrl =
-          item.sourceUrl ||
-          item.url ||
-          "";
-
-        const imageUrl =
-          item.imageUrl ||
-          item.image ||
-          "";
-
-        const productId =
-          item.productId ||
-          extractProductId(sourceUrl);
-
-
-        // =====================================================
-        // 过滤明显不是商品的数据
-        //
-        // 你的 API 目前有一些类似：
-        // TEE / SHORTS
-        // SNEAKERS / ACCESORIOS
-        // HOODIE / PANTS
-        // DOWNJACKET / ELECTRONICS
-        //
-        // 这些是表格里的分类标题，不是真正商品。
-        // 它们没有 sourceUrl，所以直接过滤掉。
-        // =====================================================
-
-        if (!sourceUrl) {
-          return;
-        }
-
-
-        // 完全空数据也不显示
-        if (!name && !imageUrl) {
-          return;
-        }
-
-
-        products.push({
-          category: category,
-          name: name,
-          price: price,
-          sourceUrl: sourceUrl,
-          imageUrl: imageUrl,
-          productId: productId
-        });
-
-      });
-
-    });
-
-
-    console.log(
-      "BESTR3PS products loaded:",
-      products.length
-    );
-
-    console.log(
-      "BESTR3PS first product:",
-      products[0]
-    );
-
-
-    renderCategoryTiles();
-
-    renderCategories();
-
-    renderProducts();
-
-    updateStatus();
-
-  } catch (error) {
-
-    console.error(
-      "加载商品失败:",
-      error
-    );
-
-    products = [];
-
-    const container =
-      document.getElementById(
-        "productGrid"
-      );
-
-    if (container) {
-
-      container.innerHTML = `
-        <div class="emptyState">
-          <div class="emptyIcon">!</div>
-          <h3>Unable to load products</h3>
-          <p>Please try refreshing the page.</p>
-        </div>
-      `;
-
-    }
-
-    if (status) {
-      status.textContent =
-        "Unable to load products";
-    }
-
-  }
+function getElement(id) {
+  return document.getElementById(id);
 }
 
 
 // =========================================================
-// 更新商品数量
+// API 请求
 // =========================================================
 
-function updateStatus() {
+async function fetchProductsFromAPI() {
 
-  const status =
-    document.getElementById("status");
+  const controller = new AbortController();
 
-  if (!status) return;
+  const timeout = setTimeout(() => {
+    controller.abort();
+  }, 30000);
 
+  try {
 
-  let visibleProducts =
-    [...products];
+    const url =
+      API_URL +
+      (API_URL.includes("?") ? "&" : "?") +
+      "_=" +
+      Date.now();
 
+    console.log("BESTR3PS API request:", url);
 
-  if (currentCategory !== "ALL") {
-
-    visibleProducts =
-      visibleProducts.filter(
-        product =>
-          product.category ===
-          currentCategory
-      );
-
-  }
-
-
-  const searchInput =
-    document.getElementById(
-      "searchInput"
+    const response = await fetch(
+      url,
+      {
+        method: "GET",
+        cache: "no-store",
+        redirect: "follow",
+        signal: controller.signal
+      }
     );
 
+    console.log(
+      "BESTR3PS API status:",
+      response.status,
+      response.statusText
+    );
 
-  if (searchInput) {
+    if (!response.ok) {
 
-    const keyword =
-      searchInput.value
-        .trim()
-        .toLowerCase();
-
-
-    if (keyword) {
-
-      visibleProducts =
-        visibleProducts.filter(
-          product => {
-
-            return (
-
-              String(
-                product.name || ""
-              )
-                .toLowerCase()
-                .includes(keyword)
-
-              ||
-
-              String(
-                product.category || ""
-              )
-                .toLowerCase()
-                .includes(keyword)
-
-            );
-
-          }
-        );
+      throw new Error(
+        "API returned HTTP " +
+        response.status +
+        " " +
+        response.statusText
+      );
 
     }
 
-  }
+    const text =
+      await response.text();
 
-
-  status.textContent =
-    visibleProducts.length +
-    (
-      visibleProducts.length === 1
-        ? " product"
-        : " products"
+    console.log(
+      "BESTR3PS API response length:",
+      text.length
     );
+
+    if (!text.trim()) {
+
+      throw new Error(
+        "API returned an empty response."
+      );
+
+    }
+
+    let data;
+
+    try {
+
+      data =
+        JSON.parse(text);
+
+    } catch (jsonError) {
+
+      console.error(
+        "BESTR3PS JSON parse error:",
+        jsonError
+      );
+
+      console.error(
+        "BESTR3PS raw API response:",
+        text.substring(0, 1000)
+      );
+
+      throw new Error(
+        "API response is not valid JSON."
+      );
+
+    }
+
+    if (!data || typeof data !== "object") {
+
+      throw new Error(
+        "API returned invalid data."
+      );
+
+    }
+
+    if (data.error) {
+
+      throw new Error(
+        data.message ||
+        data.error ||
+        "API returned an error."
+      );
+
+    }
+
+    return data;
+
+  } finally {
+
+    clearTimeout(timeout);
+
+  }
 
 }
 
@@ -292,7 +175,6 @@ function extractProductId(url) {
   let value =
     String(url);
 
-
   for (let i = 0; i < 3; i++) {
 
     try {
@@ -307,63 +189,344 @@ function extractProductId(url) {
       value = decoded;
 
     } catch (error) {
+
       break;
+
     }
 
   }
-
 
   let match =
     value.match(
       /\/product\/(?:weidian\/|2\/)?(\d+)/i
     );
 
-
   if (match) {
     return match[1];
   }
-
 
   match =
     value.match(
       /[?&]itemID=(\d+)/i
     );
 
-
   if (match) {
     return match[1];
   }
-
 
   match =
     value.match(
       /[?&]goodsId=(\d+)/i
     );
 
-
   if (match) {
     return match[1];
   }
-
 
   match =
     value.match(
       /[?&]id=(\d+)/i
     );
 
-
   if (match) {
     return match[1];
   }
 
-
   return "";
+}
+
+
+// =========================================================
+// 加载商品
+// =========================================================
+
+async function loadProducts() {
+
+  const status =
+    getElement("status");
+
+  const container =
+    getElement("productGrid");
+
+  if (status) {
+
+    status.textContent =
+      "Loading products...";
+
+  }
+
+  if (container) {
+
+    container.innerHTML = `
+      <div class="loadingState">
+        <div class="loadingSpinner"></div>
+        <div>Loading products...</div>
+      </div>
+    `;
+
+  }
+
+  try {
+
+    const data =
+      await fetchProductsFromAPI();
+
+    products = [];
+
+    categories.forEach(category => {
+
+      const rows =
+        Array.isArray(data[category])
+          ? data[category]
+          : [];
+
+      rows.forEach(item => {
+
+        if (!item) return;
+
+        const name =
+          String(item.name ?? "").trim();
+
+        const price =
+          item.price ?? "";
+
+        const sourceUrl =
+          String(
+            item.sourceUrl ||
+            item.url ||
+            ""
+          ).trim();
+
+        const imageUrl =
+          String(
+            item.imageUrl ||
+            item.image ||
+            ""
+          ).trim();
+
+        const productId =
+          item.productId ||
+          extractProductId(sourceUrl);
+
+        /*
+         * 没有 sourceUrl 的数据不是商品。
+         * 这会自动过滤掉：
+         *
+         * TEE / SHORTS
+         * SNEAKERS / ACCESORIOS
+         * HOODIE / PANTS
+         * DOWNJACKET / ELECTRONICS
+         */
+
+        if (!sourceUrl) {
+          return;
+        }
+
+        if (!name && !imageUrl) {
+          return;
+        }
+
+        products.push({
+          category,
+          name,
+          price,
+          sourceUrl,
+          imageUrl,
+          productId
+        });
+
+      });
+
+    });
+
+    console.log(
+      "BESTR3PS products loaded:",
+      products.length
+    );
+
+    console.log(
+      "BESTR3PS first product:",
+      products[0]
+    );
+
+    console.log(
+      "BESTR3PS category counts:",
+      categories.reduce(
+        (result, category) => {
+          result[category] =
+            products.filter(
+              product =>
+                product.category === category
+            ).length;
+          return result;
+        },
+        {}
+      )
+    );
+
+    renderCategoryTiles();
+    renderCategories();
+    renderProducts();
+    updateStatus();
+
+  } catch (error) {
+
+    console.error(
+      "BESTR3PS loadProducts error:",
+      error
+    );
+
+    products = [];
+
+    if (container) {
+
+      container.innerHTML = `
+
+        <div class="emptyState errorState">
+
+          <div class="emptyIcon">
+            !
+          </div>
+
+          <h3>
+            Unable to load products
+          </h3>
+
+          <p>
+            ${escapeHtml(
+              error.message ||
+              "Unable to connect to the product API."
+            )}
+          </p>
+
+          <button
+            type="button"
+            class="retryButton"
+            id="retryProductsButton"
+          >
+            TRY AGAIN
+          </button>
+
+        </div>
+
+      `;
+
+      const retryButton =
+        getElement(
+          "retryProductsButton"
+        );
+
+      if (retryButton) {
+
+        retryButton.addEventListener(
+          "click",
+          () => {
+            loadProducts();
+          }
+        );
+
+      }
+
+    }
+
+    if (status) {
+
+      status.textContent =
+        "Unable to load products";
+
+    }
+
+  }
 
 }
 
 
 // =========================================================
-// 商品链接
+// 更新商品数量
+// =========================================================
+
+function getFilteredProducts() {
+
+  let result =
+    [...products];
+
+  if (currentCategory !== "ALL") {
+
+    result =
+      result.filter(
+        product =>
+          product.category ===
+          currentCategory
+      );
+
+  }
+
+  const searchInput =
+    getElement("searchInput");
+
+  if (searchInput) {
+
+    const keyword =
+      searchInput.value
+        .trim()
+        .toLowerCase();
+
+    if (keyword) {
+
+      result =
+        result.filter(product => {
+
+          return (
+
+            String(
+              product.name || ""
+            )
+              .toLowerCase()
+              .includes(keyword)
+
+            ||
+
+            String(
+              product.category || ""
+            )
+              .toLowerCase()
+              .includes(keyword)
+
+          );
+
+        });
+
+    }
+
+  }
+
+  return result;
+}
+
+
+function updateStatus() {
+
+  const status =
+    getElement("status");
+
+  if (!status) return;
+
+  const visibleProducts =
+    getFilteredProducts();
+
+  status.textContent =
+    visibleProducts.length +
+    (
+      visibleProducts.length === 1
+        ? " product"
+        : " products"
+    );
+
+}
+
+
+// =========================================================
+// 商品 URL
 // =========================================================
 
 function getProductUrl(product) {
@@ -387,45 +550,42 @@ function getProductUrl(product) {
 function renderCategoryTiles() {
 
   const container =
-    document.getElementById(
-      "categoryTiles"
-    );
+    getElement("categoryTiles");
 
   if (!container) return;
 
-
   container.innerHTML = "";
-
 
   categories.forEach(
     (category, index) => {
 
       const tile =
-        document.createElement(
-          "div"
-        );
+        document.createElement("button");
 
+      tile.type =
+        "button";
 
       tile.className =
         "categoryTile";
 
-
       tile.dataset.category =
         category;
 
-
       tile.innerHTML = `
 
-        <div class="categoryTileNumber">
+        <span class="categoryTileNumber">
           ${String(index + 1).padStart(2, "0")}
-        </div>
+        </span>
 
-        <div class="categoryTileName">
+        <span class="categoryTileName">
           ${escapeHtml(category)}
-        </div>
+        </span>
+
+        <span class="categoryTileArrow">
+          →
+        </span>
 
       `;
-
 
       tile.addEventListener(
         "click",
@@ -434,21 +594,15 @@ function renderCategoryTiles() {
           currentCategory =
             category;
 
-
           renderCategories();
-
           renderProducts();
 
+          const productGrid =
+            getElement("productGrid");
 
-          const productSection =
-            document.getElementById(
-              "productGrid"
-            );
+          if (productGrid) {
 
-
-          if (productSection) {
-
-            productSection.scrollIntoView({
+            productGrid.scrollIntoView({
               behavior: "smooth",
               block: "start"
             });
@@ -457,7 +611,6 @@ function renderCategoryTiles() {
 
         }
       );
-
 
       container.appendChild(tile);
 
@@ -474,42 +627,29 @@ function renderCategoryTiles() {
 function renderCategories() {
 
   const container =
-    document.getElementById(
-      "categoryNav"
-    );
+    getElement("categoryNav");
 
   if (!container) return;
 
-
   container.innerHTML = "";
 
-
   const allButton =
-    document.createElement(
-      "button"
-    );
-
+    document.createElement("button");
 
   allButton.type =
     "button";
 
-
   allButton.className =
     "categoryButton";
-
 
   allButton.textContent =
     "ALL";
 
-
   if (currentCategory === "ALL") {
 
-    allButton.classList.add(
-      "active"
-    );
+    allButton.classList.add("active");
 
   }
-
 
   allButton.addEventListener(
     "click",
@@ -519,72 +659,132 @@ function renderCategories() {
         "ALL";
 
       renderCategories();
-
       renderProducts();
 
     }
   );
 
-
   container.appendChild(
     allButton
   );
 
+  categories.forEach(category => {
 
-  categories.forEach(
-    category => {
+    const button =
+      document.createElement("button");
 
-      const button =
-        document.createElement(
-          "button"
-        );
+    button.type =
+      "button";
+
+    button.className =
+      "categoryButton";
+
+    button.textContent =
+      category;
+
+    if (
+      currentCategory ===
+      category
+    ) {
+
+      button.classList.add("active");
+
+    }
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        currentCategory =
+          category;
+
+        renderCategories();
+        renderProducts();
+
+      }
+    );
+
+    container.appendChild(button);
+
+  });
+
+}
 
 
-      button.type =
-        "button";
+// =========================================================
+// 商品图片
+// =========================================================
 
+function createProductImage(product) {
 
-      button.className =
-        "categoryButton";
+  const imageBox =
+    document.createElement("div");
 
+  imageBox.className =
+    "productImage";
 
-      button.textContent =
-        category;
+  if (!product.imageUrl) {
 
+    imageBox.innerHTML = `
+      <div class="imageFallback">
+        NO IMAGE
+      </div>
+    `;
+
+    return imageBox;
+
+  }
+
+  const image =
+    document.createElement("img");
+
+  image.src =
+    product.imageUrl;
+
+  image.alt =
+    product.name || "Product";
+
+  image.loading =
+    "lazy";
+
+  image.decoding =
+    "async";
+
+  image.addEventListener(
+    "error",
+    () => {
+
+      image.remove();
 
       if (
-        currentCategory ===
-        category
+        !imageBox.querySelector(
+          ".imageFallback"
+        )
       ) {
 
-        button.classList.add(
-          "active"
+        const fallback =
+          document.createElement("div");
+
+        fallback.className =
+          "imageFallback";
+
+        fallback.textContent =
+          "NO IMAGE";
+
+        imageBox.appendChild(
+          fallback
         );
 
       }
 
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          currentCategory =
-            category;
-
-          renderCategories();
-
-          renderProducts();
-
-        }
-      );
-
-
-      container.appendChild(
-        button
-      );
-
     }
   );
+
+  imageBox.appendChild(
+    image
+  );
+
+  return imageBox;
 
 }
 
@@ -596,90 +796,14 @@ function renderCategories() {
 function renderProducts() {
 
   const container =
-    document.getElementById(
-      "productGrid"
-    );
-
+    getElement("productGrid");
 
   if (!container) return;
 
-
   container.innerHTML = "";
 
-
-  let filteredProducts =
-    [...products];
-
-
-  // =======================================================
-  // 分类
-  // =======================================================
-
-  if (currentCategory !== "ALL") {
-
-    filteredProducts =
-      filteredProducts.filter(
-        product =>
-          product.category ===
-          currentCategory
-      );
-
-  }
-
-
-  // =======================================================
-  // 搜索
-  // =======================================================
-
-  const searchInput =
-    document.getElementById(
-      "searchInput"
-    );
-
-
-  if (searchInput) {
-
-    const keyword =
-      searchInput.value
-        .trim()
-        .toLowerCase();
-
-
-    if (keyword) {
-
-      filteredProducts =
-        filteredProducts.filter(
-          product => {
-
-            return (
-
-              String(
-                product.name || ""
-              )
-                .toLowerCase()
-                .includes(keyword)
-
-              ||
-
-              String(
-                product.category || ""
-              )
-                .toLowerCase()
-                .includes(keyword)
-
-            );
-
-          }
-        );
-
-    }
-
-  }
-
-
-  // =======================================================
-  // 没有商品
-  // =======================================================
+  const filteredProducts =
+    getFilteredProducts();
 
   if (
     filteredProducts.length === 0
@@ -705,173 +829,115 @@ function renderProducts() {
 
     `;
 
-
     updateStatus();
 
     return;
 
   }
 
+  const fragment =
+    document.createDocumentFragment();
 
-  // =======================================================
-  // 商品卡片
-  // =======================================================
+  filteredProducts.forEach(product => {
 
-  filteredProducts.forEach(
-    product => {
+    const card =
+      document.createElement("article");
 
-      const card =
-        document.createElement(
-          "div"
-        );
+    card.className =
+      "productCard";
 
+    const link =
+      document.createElement("a");
 
-      card.className =
-        "productCard";
+    link.className =
+      "productLink";
 
+    link.href =
+      getProductUrl(product);
 
-      const productUrl =
-        getProductUrl(product);
+    link.target =
+      "_blank";
 
+    link.rel =
+      "noopener noreferrer";
 
-      const imageUrl =
-        product.imageUrl ||
-        "";
+    const imageBox =
+      createProductImage(product);
 
+    const info =
+      document.createElement("div");
 
-      // =====================================================
-      // 图片 HTML
-      //
-      // 这里直接使用 API 返回的 imageUrl。
-      // 同时强制设置 display:block，
-      // 避免原来的 CSS 把图片隐藏。
-      // =====================================================
+    info.className =
+      "productInfo";
 
-      let imageHtml = "";
+    const category =
+      document.createElement("div");
 
+    category.className =
+      "productCategory";
 
-      if (imageUrl) {
+    category.textContent =
+      product.category;
 
-        imageHtml = `
+    const name =
+      document.createElement("div");
 
-          <img
-            src="${escapeAttribute(imageUrl)}"
-            alt="${escapeAttribute(product.name)}"
-            loading="lazy"
-            decoding="async"
-            style="
-              display:block;
-              width:100%;
-              height:100%;
-              min-height:220px;
-              object-fit:cover;
-            "
-            onload="
-              this.style.display='block';
-              this.parentElement.classList.remove('imageError');
-            "
-            onerror="
-              this.style.display='none';
-              this.parentElement.classList.add('imageError');
-              if (!this.parentElement.querySelector('.imageFallback')) {
-                const fallback = document.createElement('div');
-                fallback.className = 'imageFallback';
-                fallback.textContent = 'NO IMAGE';
-                this.parentElement.appendChild(fallback);
-              }
-            "
-          >
+    name.className =
+      "productName";
 
-        `;
+    name.textContent =
+      product.name;
 
-      } else {
+    const price =
+      document.createElement("div");
 
-        imageHtml = `
+    price.className =
+      "productPrice";
 
-          <div class="imageFallback">
-            NO IMAGE
-          </div>
+    if (
+      product.price !== "" &&
+      product.price !== null &&
+      product.price !== undefined
+    ) {
 
-        `;
+      price.textContent =
+        String(product.price);
 
-      }
+    } else {
 
+      price.textContent =
+        "—";
 
-      // =====================================================
-      // 商品卡片
-      // =====================================================
-
-      card.innerHTML = `
-
-        <a
-          href="${escapeAttribute(productUrl)}"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="productLink"
-        >
-
-          <div
-            class="productImage"
-            style="
-              width:100%;
-              min-height:220px;
-              position:relative;
-              overflow:hidden;
-            "
-          >
-
-            ${imageHtml}
-
-          </div>
-
-
-          <div class="productInfo">
-
-            <div class="productName">
-              ${escapeHtml(product.name)}
-            </div>
-
-
-            ${
-              product.price !== "" &&
-              product.price !== null &&
-              product.price !== undefined
-                ? `
-                  <div class="productPrice">
-                    ${escapeHtml(product.price)}
-                  </div>
-                `
-                : `
-                  <div class="productPrice emptyPrice">
-                    —
-                  </div>
-                `
-            }
-
-
-            <div class="viewButton">
-              VIEW PRODUCT →
-            </div>
-
-
-            <div class="productCategory">
-              ${escapeHtml(product.category)}
-            </div>
-
-          </div>
-
-        </a>
-
-      `;
-
-
-      container.appendChild(
-        card
+      price.classList.add(
+        "emptyPrice"
       );
 
     }
-  );
 
+    const viewButton =
+      document.createElement("div");
+
+    viewButton.className =
+      "viewButton";
+
+    viewButton.textContent =
+      "VIEW PRODUCT →";
+
+    info.appendChild(category);
+    info.appendChild(name);
+    info.appendChild(price);
+    info.appendChild(viewButton);
+
+    link.appendChild(imageBox);
+    link.appendChild(info);
+
+    card.appendChild(link);
+
+    fragment.appendChild(card);
+
+  });
+
+  container.appendChild(fragment);
 
   updateStatus();
 
@@ -885,18 +951,16 @@ function renderProducts() {
 function setupSearch() {
 
   const searchInput =
-    document.getElementById(
-      "searchInput"
-    );
-
+    getElement("searchInput");
 
   if (!searchInput) return;
-
 
   searchInput.addEventListener(
     "input",
     () => {
+
       renderProducts();
+
     }
   );
 
@@ -910,22 +974,13 @@ function setupSearch() {
 function setupHeroSearch() {
 
   const heroInput =
-    document.getElementById(
-      "heroSearchInput"
-    );
-
+    getElement("heroSearchInput");
 
   const heroButton =
-    document.getElementById(
-      "heroSearchButton"
-    );
-
+    getElement("heroSearchButton");
 
   const searchInput =
-    document.getElementById(
-      "searchInput"
-    );
-
+    getElement("searchInput");
 
   if (
     !heroInput ||
@@ -934,27 +989,19 @@ function setupHeroSearch() {
     return;
   }
 
-
   function executeSearch() {
 
     searchInput.value =
       heroInput.value;
 
-
     currentCategory =
       "ALL";
 
-
     renderCategories();
-
     renderProducts();
 
-
     const productGrid =
-      document.getElementById(
-        "productGrid"
-      );
-
+      getElement("productGrid");
 
     if (productGrid) {
 
@@ -966,7 +1013,6 @@ function setupHeroSearch() {
     }
 
   }
-
 
   heroInput.addEventListener(
     "keydown",
@@ -983,7 +1029,6 @@ function setupHeroSearch() {
 
     }
   );
-
 
   if (heroButton) {
 
@@ -1004,43 +1049,37 @@ function setupHeroSearch() {
 function setupAgentSelector() {
 
   const headerSelect =
-    document.getElementById(
-      "agentSelect"
-    );
-
+    getElement("agentSelect");
 
   const desktopSelect =
-    document.getElementById(
-      "desktopAgentSelect"
-    );
-
+    getElement("desktopAgentSelect");
 
   function changeAgent(value) {
 
     currentAgent =
       value || "litbuy";
 
-
     if (headerSelect) {
-
       headerSelect.value =
         currentAgent;
-
     }
-
 
     if (desktopSelect) {
-
       desktopSelect.value =
         currentAgent;
-
     }
 
+    /*
+     * 当前 API 返回的 sourceUrl
+     * 已经是商品实际链接。
+     *
+     * 因此这里暂时不修改 sourceUrl。
+     * Agent selector 保留用于后续扩展。
+     */
 
     renderProducts();
 
   }
-
 
   if (headerSelect) {
 
@@ -1056,7 +1095,6 @@ function setupAgentSelector() {
     );
 
   }
-
 
   if (desktopSelect) {
 
@@ -1083,13 +1121,9 @@ function setupAgentSelector() {
 function setupRefreshButton() {
 
   const refreshBtn =
-    document.getElementById(
-      "refreshBtn"
-    );
-
+    getElement("refreshBtn");
 
   if (!refreshBtn) return;
-
 
   refreshBtn.addEventListener(
     "click",
@@ -1098,11 +1132,9 @@ function setupRefreshButton() {
       refreshBtn.disabled =
         true;
 
-
       refreshBtn.classList.add(
         "loading"
       );
-
 
       try {
 
@@ -1112,7 +1144,6 @@ function setupRefreshButton() {
 
         refreshBtn.disabled =
           false;
-
 
         refreshBtn.classList.remove(
           "loading"
@@ -1133,16 +1164,12 @@ function setupRefreshButton() {
 function setupMobileMenu() {
 
   const menuButton =
-    document.getElementById(
+    getElement(
       "mobileMenuButton"
     );
 
-
   const mobileMenu =
-    document.getElementById(
-      "mobileNav"
-    );
-
+    getElement("mobileNav");
 
   if (
     !menuButton ||
@@ -1153,37 +1180,44 @@ function setupMobileMenu() {
 
   }
 
-
   menuButton.addEventListener(
     "click",
     () => {
 
-      mobileMenu.classList.toggle(
-        "open"
+      const isOpen =
+        mobileMenu.classList.toggle(
+          "open"
+        );
+
+      menuButton.setAttribute(
+        "aria-expanded",
+        String(isOpen)
       );
 
     }
   );
 
-
   mobileMenu
     .querySelectorAll("a")
-    .forEach(
-      link => {
+    .forEach(link => {
 
-        link.addEventListener(
-          "click",
-          () => {
+      link.addEventListener(
+        "click",
+        () => {
 
-            mobileMenu.classList.remove(
-              "open"
-            );
+          mobileMenu.classList.remove(
+            "open"
+          );
 
-          }
-        );
+          menuButton.setAttribute(
+            "aria-expanded",
+            "false"
+          );
 
-      }
-    );
+        }
+      );
+
+    });
 
 }
 
@@ -1195,13 +1229,9 @@ function setupMobileMenu() {
 function setupLogo() {
 
   const logo =
-    document.getElementById(
-      "homeLogo"
-    );
-
+    getElement("homeLogo");
 
   if (!logo) return;
-
 
   logo.addEventListener(
     "click",
@@ -1210,37 +1240,21 @@ function setupLogo() {
       currentCategory =
         "ALL";
 
-
       const searchInput =
-        document.getElementById(
-          "searchInput"
-        );
-
+        getElement("searchInput");
 
       const heroInput =
-        document.getElementById(
-          "heroSearchInput"
-        );
-
+        getElement("heroSearchInput");
 
       if (searchInput) {
-
-        searchInput.value =
-          "";
-
+        searchInput.value = "";
       }
-
 
       if (heroInput) {
-
-        heroInput.value =
-          "";
-
+        heroInput.value = "";
       }
 
-
       renderCategories();
-
       renderProducts();
 
     }
@@ -1257,17 +1271,19 @@ document.addEventListener(
   "DOMContentLoaded",
   () => {
 
+    console.log(
+      "BESTR3PS app.js loaded."
+    );
+
     setupSearch();
-
     setupHeroSearch();
-
     setupAgentSelector();
-
     setupRefreshButton();
-
     setupMobileMenu();
-
     setupLogo();
+
+    renderCategoryTiles();
+    renderCategories();
 
     loadProducts();
 
