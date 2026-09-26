@@ -19,6 +19,25 @@ let currentAgent = "litbuy";
 
 
 // =========================================================
+// HTML 安全处理
+// =========================================================
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+
+function escapeAttribute(value) {
+  return escapeHtml(value);
+}
+
+
+// =========================================================
 // 加载商品
 // =========================================================
 
@@ -38,27 +57,38 @@ async function loadProducts() {
     );
 
     if (!response.ok) {
-      throw new Error("API request failed: " + response.status);
+      throw new Error(
+        "API request failed: " + response.status
+      );
     }
 
     const data = await response.json();
 
     if (data.error) {
-      throw new Error(data.message || "API returned an error");
+      throw new Error(
+        data.message || "API returned an error"
+      );
     }
 
     products = [];
 
     categories.forEach(category => {
-      const rows = Array.isArray(data[category])
-        ? data[category]
-        : [];
+
+      const rows =
+        Array.isArray(data[category])
+          ? data[category]
+          : [];
 
       rows.forEach(item => {
+
         if (!item) return;
 
-        const name = item.name || "";
-        const price = item.price || "";
+        const name =
+          item.name || "";
+
+        const price =
+          item.price ?? "";
+
         const sourceUrl =
           item.sourceUrl ||
           item.url ||
@@ -73,9 +103,30 @@ async function loadProducts() {
           item.productId ||
           extractProductId(sourceUrl);
 
-        if (!name && !sourceUrl && !imageUrl) {
+
+        // =====================================================
+        // 过滤明显不是商品的数据
+        //
+        // 你的 API 目前有一些类似：
+        // TEE / SHORTS
+        // SNEAKERS / ACCESORIOS
+        // HOODIE / PANTS
+        // DOWNJACKET / ELECTRONICS
+        //
+        // 这些是表格里的分类标题，不是真正商品。
+        // 它们没有 sourceUrl，所以直接过滤掉。
+        // =====================================================
+
+        if (!sourceUrl) {
           return;
         }
+
+
+        // 完全空数据也不显示
+        if (!name && !imageUrl) {
+          return;
+        }
+
 
         products.push({
           category: category,
@@ -85,24 +136,47 @@ async function loadProducts() {
           imageUrl: imageUrl,
           productId: productId
         });
+
       });
+
     });
 
+
+    console.log(
+      "BESTR3PS products loaded:",
+      products.length
+    );
+
+    console.log(
+      "BESTR3PS first product:",
+      products[0]
+    );
+
+
     renderCategoryTiles();
+
     renderCategories();
+
     renderProducts();
 
     updateStatus();
 
   } catch (error) {
-    console.error("加载商品失败:", error);
+
+    console.error(
+      "加载商品失败:",
+      error
+    );
 
     products = [];
 
     const container =
-      document.getElementById("productGrid");
+      document.getElementById(
+        "productGrid"
+      );
 
     if (container) {
+
       container.innerHTML = `
         <div class="emptyState">
           <div class="emptyIcon">!</div>
@@ -110,11 +184,14 @@ async function loadProducts() {
           <p>Please try refreshing the page.</p>
         </div>
       `;
+
     }
 
     if (status) {
-      status.textContent = "Unable to load products";
+      status.textContent =
+        "Unable to load products";
     }
+
   }
 }
 
@@ -124,46 +201,83 @@ async function loadProducts() {
 // =========================================================
 
 function updateStatus() {
-  const status = document.getElementById("status");
+
+  const status =
+    document.getElementById("status");
 
   if (!status) return;
 
-  let visibleProducts = [...products];
+
+  let visibleProducts =
+    [...products];
+
 
   if (currentCategory !== "ALL") {
-    visibleProducts = visibleProducts.filter(
-      product =>
-        product.category === currentCategory
-    );
+
+    visibleProducts =
+      visibleProducts.filter(
+        product =>
+          product.category ===
+          currentCategory
+      );
+
   }
+
 
   const searchInput =
-    document.getElementById("searchInput");
+    document.getElementById(
+      "searchInput"
+    );
+
 
   if (searchInput) {
+
     const keyword =
-      searchInput.value.trim().toLowerCase();
+      searchInput.value
+        .trim()
+        .toLowerCase();
+
 
     if (keyword) {
+
       visibleProducts =
-        visibleProducts.filter(product => {
-          return (
-            String(product.name || "")
-              .toLowerCase()
-              .includes(keyword) ||
-            String(product.category || "")
-              .toLowerCase()
-              .includes(keyword)
-          );
-        });
+        visibleProducts.filter(
+          product => {
+
+            return (
+
+              String(
+                product.name || ""
+              )
+                .toLowerCase()
+                .includes(keyword)
+
+              ||
+
+              String(
+                product.category || ""
+              )
+                .toLowerCase()
+                .includes(keyword)
+
+            );
+
+          }
+        );
+
     }
+
   }
+
 
   status.textContent =
     visibleProducts.length +
-    (visibleProducts.length === 1
-      ? " product"
-      : " products");
+    (
+      visibleProducts.length === 1
+        ? " product"
+        : " products"
+    );
+
 }
 
 
@@ -172,13 +286,19 @@ function updateStatus() {
 // =========================================================
 
 function extractProductId(url) {
+
   if (!url) return "";
 
-  let value = String(url);
+  let value =
+    String(url);
+
 
   for (let i = 0; i < 3; i++) {
+
     try {
-      const decoded = decodeURIComponent(value);
+
+      const decoded =
+        decodeURIComponent(value);
 
       if (decoded === value) {
         break;
@@ -189,45 +309,56 @@ function extractProductId(url) {
     } catch (error) {
       break;
     }
+
   }
+
 
   let match =
     value.match(
       /\/product\/(?:weidian\/|2\/)?(\d+)/i
     );
 
+
   if (match) {
     return match[1];
   }
+
 
   match =
     value.match(
       /[?&]itemID=(\d+)/i
     );
 
+
   if (match) {
     return match[1];
   }
+
 
   match =
     value.match(
       /[?&]goodsId=(\d+)/i
     );
 
+
   if (match) {
     return match[1];
   }
+
 
   match =
     value.match(
       /[?&]id=(\d+)/i
     );
 
+
   if (match) {
     return match[1];
   }
 
+
   return "";
+
 }
 
 
@@ -236,9 +367,16 @@ function extractProductId(url) {
 // =========================================================
 
 function getProductUrl(product) {
-  if (!product) return "#";
 
-  return product.sourceUrl || "#";
+  if (!product) {
+    return "#";
+  }
+
+  return (
+    product.sourceUrl ||
+    "#"
+  );
+
 }
 
 
@@ -247,50 +385,85 @@ function getProductUrl(product) {
 // =========================================================
 
 function renderCategoryTiles() {
+
   const container =
-    document.getElementById("categoryTiles");
+    document.getElementById(
+      "categoryTiles"
+    );
 
   if (!container) return;
 
+
   container.innerHTML = "";
 
-  categories.forEach((category, index) => {
-    const tile =
-      document.createElement("div");
 
-    tile.className = "categoryTile";
+  categories.forEach(
+    (category, index) => {
 
-    tile.dataset.category = category;
+      const tile =
+        document.createElement(
+          "div"
+        );
 
-    tile.innerHTML = `
-      <div class="categoryTileNumber">
-        ${String(index + 1).padStart(2, "0")}
-      </div>
 
-      <div class="categoryTileName">
-        ${escapeHtml(category)}
-      </div>
-    `;
+      tile.className =
+        "categoryTile";
 
-    tile.addEventListener("click", () => {
-      currentCategory = category;
 
-      renderCategories();
-      renderProducts();
+      tile.dataset.category =
+        category;
 
-      const productSection =
-        document.getElementById("productGrid");
 
-      if (productSection) {
-        productSection.scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        });
-      }
-    });
+      tile.innerHTML = `
 
-    container.appendChild(tile);
-  });
+        <div class="categoryTileNumber">
+          ${String(index + 1).padStart(2, "0")}
+        </div>
+
+        <div class="categoryTileName">
+          ${escapeHtml(category)}
+        </div>
+
+      `;
+
+
+      tile.addEventListener(
+        "click",
+        () => {
+
+          currentCategory =
+            category;
+
+
+          renderCategories();
+
+          renderProducts();
+
+
+          const productSection =
+            document.getElementById(
+              "productGrid"
+            );
+
+
+          if (productSection) {
+
+            productSection.scrollIntoView({
+              behavior: "smooth",
+              block: "start"
+            });
+
+          }
+
+        }
+      );
+
+
+      container.appendChild(tile);
+
+    }
+  );
+
 }
 
 
@@ -299,59 +472,120 @@ function renderCategoryTiles() {
 // =========================================================
 
 function renderCategories() {
+
   const container =
-    document.getElementById("categoryNav");
+    document.getElementById(
+      "categoryNav"
+    );
 
   if (!container) return;
 
+
   container.innerHTML = "";
 
+
   const allButton =
-    document.createElement("button");
+    document.createElement(
+      "button"
+    );
 
-  allButton.type = "button";
 
-  allButton.className = "categoryButton";
+  allButton.type =
+    "button";
 
-  allButton.textContent = "ALL";
+
+  allButton.className =
+    "categoryButton";
+
+
+  allButton.textContent =
+    "ALL";
+
 
   if (currentCategory === "ALL") {
-    allButton.classList.add("active");
+
+    allButton.classList.add(
+      "active"
+    );
+
   }
 
-  allButton.addEventListener("click", () => {
-    currentCategory = "ALL";
 
-    renderCategories();
-    renderProducts();
-  });
+  allButton.addEventListener(
+    "click",
+    () => {
 
-  container.appendChild(allButton);
-
-
-  categories.forEach(category => {
-    const button =
-      document.createElement("button");
-
-    button.type = "button";
-
-    button.className = "categoryButton";
-
-    button.textContent = category;
-
-    if (currentCategory === category) {
-      button.classList.add("active");
-    }
-
-    button.addEventListener("click", () => {
-      currentCategory = category;
+      currentCategory =
+        "ALL";
 
       renderCategories();
-      renderProducts();
-    });
 
-    container.appendChild(button);
-  });
+      renderProducts();
+
+    }
+  );
+
+
+  container.appendChild(
+    allButton
+  );
+
+
+  categories.forEach(
+    category => {
+
+      const button =
+        document.createElement(
+          "button"
+        );
+
+
+      button.type =
+        "button";
+
+
+      button.className =
+        "categoryButton";
+
+
+      button.textContent =
+        category;
+
+
+      if (
+        currentCategory ===
+        category
+      ) {
+
+        button.classList.add(
+          "active"
+        );
+
+      }
+
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          currentCategory =
+            category;
+
+          renderCategories();
+
+          renderProducts();
+
+        }
+      );
+
+
+      container.appendChild(
+        button
+      );
+
+    }
+  );
+
 }
 
 
@@ -360,147 +594,287 @@ function renderCategories() {
 // =========================================================
 
 function renderProducts() {
+
   const container =
-    document.getElementById("productGrid");
+    document.getElementById(
+      "productGrid"
+    );
+
 
   if (!container) return;
 
+
   container.innerHTML = "";
 
-  let filteredProducts = [...products];
+
+  let filteredProducts =
+    [...products];
 
 
+  // =======================================================
   // 分类
+  // =======================================================
+
   if (currentCategory !== "ALL") {
+
     filteredProducts =
       filteredProducts.filter(
         product =>
-          product.category === currentCategory
+          product.category ===
+          currentCategory
       );
+
   }
 
 
+  // =======================================================
   // 搜索
+  // =======================================================
+
   const searchInput =
-    document.getElementById("searchInput");
+    document.getElementById(
+      "searchInput"
+    );
+
 
   if (searchInput) {
+
     const keyword =
-      searchInput.value.trim().toLowerCase();
+      searchInput.value
+        .trim()
+        .toLowerCase();
+
 
     if (keyword) {
+
       filteredProducts =
-        filteredProducts.filter(product => {
-          return (
-            String(product.name || "")
-              .toLowerCase()
-              .includes(keyword) ||
-            String(product.category || "")
-              .toLowerCase()
-              .includes(keyword)
-          );
-        });
+        filteredProducts.filter(
+          product => {
+
+            return (
+
+              String(
+                product.name || ""
+              )
+                .toLowerCase()
+                .includes(keyword)
+
+              ||
+
+              String(
+                product.category || ""
+              )
+                .toLowerCase()
+                .includes(keyword)
+
+            );
+
+          }
+        );
+
     }
+
   }
 
 
+  // =======================================================
   // 没有商品
-  if (filteredProducts.length === 0) {
+  // =======================================================
+
+  if (
+    filteredProducts.length === 0
+  ) {
+
     container.innerHTML = `
+
       <div class="emptyState">
-        <div class="emptyIcon">⌕</div>
-        <h3>No products found</h3>
-        <p>Try another search or category.</p>
+
+        <div class="emptyIcon">
+          ⌕
+        </div>
+
+        <h3>
+          No products found
+        </h3>
+
+        <p>
+          Try another search or category.
+        </p>
+
       </div>
+
     `;
+
 
     updateStatus();
 
     return;
+
   }
 
 
+  // =======================================================
   // 商品卡片
-  filteredProducts.forEach(product => {
-    const card =
-      document.createElement("div");
+  // =======================================================
 
-    card.className = "productCard";
+  filteredProducts.forEach(
+    product => {
 
-    const productUrl =
-      getProductUrl(product);
-
-
-    card.innerHTML = `
-      <a
-        href="${escapeAttribute(productUrl)}"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="productLink"
-      >
-
-        <div class="productImage">
-
-          ${
-            product.imageUrl
-              ? `
-                <img
-                  src="${escapeAttribute(product.imageUrl)}"
-                  alt="${escapeAttribute(product.name)}"
-                  loading="lazy"
-                  onerror="this.style.display='none'; this.parentElement.classList.add('imageError');"
-                >
-              `
-              : `
-                <div class="imageFallback">
-                  NO IMAGE
-                </div>
-              `
-          }
-
-        </div>
+      const card =
+        document.createElement(
+          "div"
+        );
 
 
-        <div class="productInfo">
+      card.className =
+        "productCard";
 
-          <div class="productName">
-            ${escapeHtml(product.name)}
+
+      const productUrl =
+        getProductUrl(product);
+
+
+      const imageUrl =
+        product.imageUrl ||
+        "";
+
+
+      // =====================================================
+      // 图片 HTML
+      //
+      // 这里直接使用 API 返回的 imageUrl。
+      // 同时强制设置 display:block，
+      // 避免原来的 CSS 把图片隐藏。
+      // =====================================================
+
+      let imageHtml = "";
+
+
+      if (imageUrl) {
+
+        imageHtml = `
+
+          <img
+            src="${escapeAttribute(imageUrl)}"
+            alt="${escapeAttribute(product.name)}"
+            loading="lazy"
+            decoding="async"
+            style="
+              display:block;
+              width:100%;
+              height:100%;
+              min-height:220px;
+              object-fit:cover;
+            "
+            onload="
+              this.style.display='block';
+              this.parentElement.classList.remove('imageError');
+            "
+            onerror="
+              this.style.display='none';
+              this.parentElement.classList.add('imageError');
+              if (!this.parentElement.querySelector('.imageFallback')) {
+                const fallback = document.createElement('div');
+                fallback.className = 'imageFallback';
+                fallback.textContent = 'NO IMAGE';
+                this.parentElement.appendChild(fallback);
+              }
+            "
+          >
+
+        `;
+
+      } else {
+
+        imageHtml = `
+
+          <div class="imageFallback">
+            NO IMAGE
+          </div>
+
+        `;
+
+      }
+
+
+      // =====================================================
+      // 商品卡片
+      // =====================================================
+
+      card.innerHTML = `
+
+        <a
+          href="${escapeAttribute(productUrl)}"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="productLink"
+        >
+
+          <div
+            class="productImage"
+            style="
+              width:100%;
+              min-height:220px;
+              position:relative;
+              overflow:hidden;
+            "
+          >
+
+            ${imageHtml}
+
           </div>
 
 
-          ${
-            product.price
-              ? `
-                <div class="productPrice">
-                  ${escapeHtml(product.price)}
-                </div>
-              `
-              : `
-                <div class="productPrice emptyPrice">
-                  —
-                </div>
-              `
-          }
+          <div class="productInfo">
+
+            <div class="productName">
+              ${escapeHtml(product.name)}
+            </div>
 
 
-          <div class="viewButton">
-            VIEW PRODUCT →
+            ${
+              product.price !== "" &&
+              product.price !== null &&
+              product.price !== undefined
+                ? `
+                  <div class="productPrice">
+                    ${escapeHtml(product.price)}
+                  </div>
+                `
+                : `
+                  <div class="productPrice emptyPrice">
+                    —
+                  </div>
+                `
+            }
+
+
+            <div class="viewButton">
+              VIEW PRODUCT →
+            </div>
+
+
+            <div class="productCategory">
+              ${escapeHtml(product.category)}
+            </div>
+
           </div>
 
+        </a>
 
-          <div class="productCategory">
-            ${escapeHtml(product.category)}
-          </div>
+      `;
 
-        </div>
 
-      </a>
-    `;
+      container.appendChild(
+        card
+      );
 
-    container.appendChild(card);
-  });
+    }
+  );
+
 
   updateStatus();
+
 }
 
 
@@ -509,14 +883,23 @@ function renderProducts() {
 // =========================================================
 
 function setupSearch() {
+
   const searchInput =
-    document.getElementById("searchInput");
+    document.getElementById(
+      "searchInput"
+    );
+
 
   if (!searchInput) return;
 
-  searchInput.addEventListener("input", () => {
-    renderProducts();
-  });
+
+  searchInput.addEventListener(
+    "input",
+    () => {
+      renderProducts();
+    }
+  );
+
 }
 
 
@@ -525,55 +908,92 @@ function setupSearch() {
 // =========================================================
 
 function setupHeroSearch() {
+
   const heroInput =
-    document.getElementById("heroSearchInput");
+    document.getElementById(
+      "heroSearchInput"
+    );
+
 
   const heroButton =
-    document.getElementById("heroSearchButton");
+    document.getElementById(
+      "heroSearchButton"
+    );
+
 
   const searchInput =
-    document.getElementById("searchInput");
+    document.getElementById(
+      "searchInput"
+    );
 
-  if (!heroInput || !searchInput) return;
+
+  if (
+    !heroInput ||
+    !searchInput
+  ) {
+    return;
+  }
 
 
   function executeSearch() {
+
     searchInput.value =
       heroInput.value;
 
-    currentCategory = "ALL";
+
+    currentCategory =
+      "ALL";
+
 
     renderCategories();
+
     renderProducts();
 
+
     const productGrid =
-      document.getElementById("productGrid");
+      document.getElementById(
+        "productGrid"
+      );
+
 
     if (productGrid) {
+
       productGrid.scrollIntoView({
         behavior: "smooth",
         block: "start"
       });
+
     }
+
   }
 
 
   heroInput.addEventListener(
     "keydown",
     event => {
-      if (event.key === "Enter") {
+
+      if (
+        event.key ===
+        "Enter"
+      ) {
+
         executeSearch();
+
       }
+
     }
   );
 
 
   if (heroButton) {
+
     heroButton.addEventListener(
       "click",
       executeSearch
     );
+
   }
+
 }
 
 
@@ -582,8 +1002,12 @@ function setupHeroSearch() {
 // =========================================================
 
 function setupAgentSelector() {
+
   const headerSelect =
-    document.getElementById("agentSelect");
+    document.getElementById(
+      "agentSelect"
+    );
+
 
   const desktopSelect =
     document.getElementById(
@@ -592,41 +1016,63 @@ function setupAgentSelector() {
 
 
   function changeAgent(value) {
+
     currentAgent =
       value || "litbuy";
 
+
     if (headerSelect) {
+
       headerSelect.value =
         currentAgent;
+
     }
+
 
     if (desktopSelect) {
+
       desktopSelect.value =
         currentAgent;
+
     }
 
+
     renderProducts();
+
   }
 
 
   if (headerSelect) {
+
     headerSelect.addEventListener(
       "change",
       event => {
-        changeAgent(event.target.value);
+
+        changeAgent(
+          event.target.value
+        );
+
       }
     );
+
   }
 
 
   if (desktopSelect) {
+
     desktopSelect.addEventListener(
       "change",
       event => {
-        changeAgent(event.target.value);
+
+        changeAgent(
+          event.target.value
+        );
+
       }
     );
+
   }
+
 }
 
 
@@ -635,33 +1081,48 @@ function setupAgentSelector() {
 // =========================================================
 
 function setupRefreshButton() {
+
   const refreshBtn =
-    document.getElementById("refreshBtn");
+    document.getElementById(
+      "refreshBtn"
+    );
+
 
   if (!refreshBtn) return;
+
 
   refreshBtn.addEventListener(
     "click",
     async () => {
 
-      refreshBtn.disabled = true;
+      refreshBtn.disabled =
+        true;
+
 
       refreshBtn.classList.add(
         "loading"
       );
 
+
       try {
+
         await loadProducts();
+
       } finally {
-        refreshBtn.disabled = false;
+
+        refreshBtn.disabled =
+          false;
+
 
         refreshBtn.classList.remove(
           "loading"
         );
+
       }
 
     }
   );
+
 }
 
 
@@ -670,43 +1131,60 @@ function setupRefreshButton() {
 // =========================================================
 
 function setupMobileMenu() {
+
   const menuButton =
     document.getElementById(
       "mobileMenuButton"
     );
+
 
   const mobileMenu =
     document.getElementById(
       "mobileNav"
     );
 
-  if (!menuButton || !mobileMenu) {
+
+  if (
+    !menuButton ||
+    !mobileMenu
+  ) {
+
     return;
+
   }
 
 
   menuButton.addEventListener(
     "click",
     () => {
+
       mobileMenu.classList.toggle(
         "open"
       );
+
     }
   );
 
 
   mobileMenu
     .querySelectorAll("a")
-    .forEach(link => {
-      link.addEventListener(
-        "click",
-        () => {
-          mobileMenu.classList.remove(
-            "open"
-          );
-        }
-      );
-    });
+    .forEach(
+      link => {
+
+        link.addEventListener(
+          "click",
+          () => {
+
+            mobileMenu.classList.remove(
+              "open"
+            );
+
+          }
+        );
+
+      }
+    );
+
 }
 
 
@@ -715,39 +1193,59 @@ function setupMobileMenu() {
 // =========================================================
 
 function setupLogo() {
+
   const logo =
-    document.getElementById("homeLogo");
+    document.getElementById(
+      "homeLogo"
+    );
+
 
   if (!logo) return;
+
 
   logo.addEventListener(
     "click",
     () => {
 
-      currentCategory = "ALL";
+      currentCategory =
+        "ALL";
+
 
       const searchInput =
         document.getElementById(
           "searchInput"
         );
 
+
       const heroInput =
         document.getElementById(
           "heroSearchInput"
         );
 
+
       if (searchInput) {
-        searchInput.value = "";
+
+        searchInput.value =
+          "";
+
       }
+
 
       if (heroInput) {
-        heroInput.value = "";
+
+        heroInput.value =
+          "";
+
       }
 
+
       renderCategories();
+
       renderProducts();
+
     }
   );
+
 }
 
 
