@@ -1,5 +1,5 @@
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbx5yy3DL89m_w2pJXQXMM1QbQDvdMUZ-erwzpKE8XYG1-_vD6fzhhZtP1jfkP8ZtNKl/exec";
+  "https://script.google.com/macros/s/AKfycbxn9DVmH7b3isG3CyaNEJ7b6DrGrLimfIc7YVX9YU1NkAftIfcQPNyFNKFP8ko_d7JX/exec";
 
 let products = [];
 
