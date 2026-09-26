@@ -1,36 +1,6 @@
-// =====================================================
-// BESTR3PS FRONTEND
-// 双 Spreadsheet 分页版
-// =====================================================
-
-
 const API_URL =
   "https://script.google.com/macros/s/AKfycbxtFiRVCd9Y1MZ6l8-YlmmzRa97RZ6xppFLYoQgTEOBddtlx6wE6q9PnUaCdu3D94BR/exec";
 
-
-const PAGE_SIZE = 24;
-
-
-// =====================================================
-// 数据
-// =====================================================
-
-let products = [];
-
-let currentCategory = "ALL";
-
-let currentAgent = "litbuy";
-
-let currentPage = 1;
-
-let totalPages = 1;
-
-let isLoading = false;
-
-
-// =====================================================
-// 分类
-// =====================================================
 
 const categories = [
   "SNEAKERS",
@@ -44,13 +14,42 @@ const categories = [
 ];
 
 
+const agents = [
+  "LITBUY",
+  "OOPBUY",
+  "KAKOBUY",
+  "HIPOBUY",
+  "LOVEGOBUY",
+  "RIZZITGO",
+  "BOONBUY",
+  "USFANS"
+];
+
+
+let products = [];
+
+let currentCategory = "ALL";
+
+let currentPage = 1;
+
+let totalPages = 1;
+
+let currentAgent = "LITBUY";
+
+let isLoading = false;
+
+
 // =====================================================
-// HTML 安全
+// HTML escape
 // =====================================================
 
-function escapeHtml(value) {
+function escapeHtml(
+  value
+) {
 
-  return String(value ?? "")
+  return String(
+    value ?? ""
+  )
     .replace(
       /&/g,
       "&amp;"
@@ -75,31 +74,24 @@ function escapeHtml(value) {
 }
 
 
-function escapeAttribute(value) {
-
-  return escapeHtml(value);
-
-}
-
-
 // =====================================================
-// API 请求
+// API
 // =====================================================
 
-async function fetchCategory(
+async function fetchProducts(
   category,
-  page = 1
+  page
 ) {
 
   const url =
     API_URL +
     "?category=" +
-    encodeURIComponent(category) +
+    encodeURIComponent(
+      category
+    ) +
     "&page=" +
     page +
-    "&limit=" +
-    PAGE_SIZE +
-    "&time=" +
+    "&t=" +
     Date.now();
 
 
@@ -113,10 +105,12 @@ async function fetchCategory(
     );
 
 
-  if (!response.ok) {
+  if (
+    !response.ok
+  ) {
 
     throw new Error(
-      "API HTTP " +
+      "HTTP " +
       response.status
     );
 
@@ -134,7 +128,7 @@ async function fetchCategory(
 
     throw new Error(
       data.message ||
-      "API returned an error"
+      "API Error"
     );
 
   }
@@ -146,40 +140,36 @@ async function fetchCategory(
 
 
 // =====================================================
-// 加载分类
+// Load
 // =====================================================
 
-async function loadCategory(
-  category,
+async function loadProducts(
+  category = currentCategory,
   page = 1
 ) {
 
   if (isLoading) {
+
     return;
+
   }
 
 
   isLoading = true;
 
 
-  const status =
-    document.getElementById(
-      "status"
-    );
+  setStatus(
+    "Loading products..."
+  );
 
 
-  if (status) {
-
-    status.textContent =
-      "Loading products...";
-
-  }
+  showLoading();
 
 
   try {
 
     const data =
-      await fetchCategory(
+      await fetchProducts(
         category,
         page
       );
@@ -189,9 +179,6 @@ async function loadCategory(
       (data.products || [])
         .map(
           item => ({
-
-            category:
-              category,
 
             name:
               item.name || "",
@@ -210,7 +197,6 @@ async function loadCategory(
               "",
 
             productId:
-              item.productId ||
               extractProductId(
                 item.sourceUrl ||
                 item.url ||
@@ -220,10 +206,10 @@ async function loadCategory(
           })
         )
         .filter(
-          item =>
-            item.sourceUrl ||
-            item.name ||
-            item.imageUrl
+          product =>
+            product.name ||
+            product.sourceUrl ||
+            product.imageUrl
         );
 
 
@@ -232,75 +218,39 @@ async function loadCategory(
 
 
     currentPage =
-      data.page || page;
+      data.page ||
+      page;
 
 
     totalPages =
-      data.totalPages || 1;
+      data.totalPages ||
+      1;
 
+
+    renderCategories();
 
     renderProducts();
-
 
     renderPagination();
 
 
-    updateStatus(
-      data.total || products.length
+    setStatus(
+      `${products.length} products loaded`
     );
 
 
   } catch (error) {
 
     console.error(
-      "BESTR3PS API ERROR:",
+      "BESTR3PS API:",
       error
     );
 
 
-    products = [];
-
-
-    const grid =
-      document.getElementById(
-        "productGrid"
-      );
-
-
-    if (grid) {
-
-      grid.innerHTML = `
-
-        <div class="emptyState">
-
-          <div class="emptyStateIcon">
-            !
-          </div>
-
-          <h3>
-            Unable to load products
-          </h3>
-
-          <p>
-            ${escapeHtml(
-              error.message ||
-              "Failed to fetch"
-            )}
-          </p>
-
-        </div>
-
-      `;
-
-    }
-
-
-    if (status) {
-
-      status.textContent =
-        "Unable to load products";
-
-    }
+    showError(
+      error.message ||
+      "Failed to fetch"
+    );
 
 
   } finally {
@@ -313,7 +263,7 @@ async function loadCategory(
 
 
 // =====================================================
-// 提取商品 ID
+// Product ID
 // =====================================================
 
 function extractProductId(
@@ -321,7 +271,9 @@ function extractProductId(
 ) {
 
   if (!url) {
+
     return "";
+
   }
 
 
@@ -336,7 +288,9 @@ function extractProductId(
 
 
   if (match) {
+
     return match[1];
+
   }
 
 
@@ -347,7 +301,9 @@ function extractProductId(
 
 
   if (match) {
+
     return match[1];
+
   }
 
 
@@ -358,7 +314,9 @@ function extractProductId(
 
 
   if (match) {
+
     return match[1];
+
   }
 
 
@@ -369,7 +327,9 @@ function extractProductId(
 
 
   if (match) {
+
     return match[1];
+
   }
 
 
@@ -379,78 +339,203 @@ function extractProductId(
 
 
 // =====================================================
-// 商品链接
+// Status
 // =====================================================
 
-function getProductUrl(
-  product
+function setStatus(
+  text
 ) {
 
-  return (
-    product.sourceUrl ||
-    ""
+  const element =
+    document.getElementById(
+      "status"
+    );
+
+
+  if (element) {
+
+    element.textContent =
+      text;
+
+  }
+
+}
+
+
+// =====================================================
+// Loading
+// =====================================================
+
+function showLoading() {
+
+  const grid =
+    document.getElementById(
+      "productGrid"
+    );
+
+
+  if (!grid) {
+
+    return;
+
+  }
+
+
+  grid.innerHTML = `
+
+    <div class="loadingState">
+
+      <div class="loadingSpinner"></div>
+
+      <p>
+        Loading products...
+      </p>
+
+    </div>
+
+  `;
+
+}
+
+
+// =====================================================
+// Error
+// =====================================================
+
+function showError(
+  message
+) {
+
+  const grid =
+    document.getElementById(
+      "productGrid"
+    );
+
+
+  if (!grid) {
+
+    return;
+
+  }
+
+
+  grid.innerHTML = `
+
+    <div class="emptyState">
+
+      <div class="emptyStateIcon">
+        !
+      </div>
+
+      <h3>
+        Unable to load products
+      </h3>
+
+      <p>
+        ${escapeHtml(
+          message
+        )}
+      </p>
+
+    </div>
+
+  `;
+
+
+  setStatus(
+    "Unable to load products"
   );
 
 }
 
 
 // =====================================================
-// Status
+// Category buttons
 // =====================================================
 
-function updateStatus(
-  total
-) {
+function renderCategories() {
 
-  const status =
+  const bar =
     document.getElementById(
-      "status"
+      "categoryBar"
     );
 
 
-  if (!status) {
-    return;
-  }
-
-
-  const start =
-    products.length
-      ? (
-          (currentPage - 1) *
-            PAGE_SIZE +
-          1
-        )
-      : 0;
-
-
-  const end =
-    products.length
-      ? (
-          start +
-          products.length -
-          1
-        )
-      : 0;
-
-
-  if (!total) {
-
-    status.textContent =
-      "No products found";
+  if (!bar) {
 
     return;
 
   }
 
 
-  status.textContent =
-    `Showing ${start}-${end} of ${total} products`;
+  const all =
+    [
+      "ALL",
+      ...categories
+    ];
+
+
+  bar.innerHTML =
+    all
+      .map(
+        category => `
+
+          <button
+            class="categoryButton ${
+              category ===
+              currentCategory
+                ? "active"
+                : ""
+            }"
+            data-category="${escapeHtml(
+              category
+            )}"
+          >
+            ${escapeHtml(
+              category
+            )}
+          </button>
+
+        `
+      )
+      .join("");
+
+
+  bar
+    .querySelectorAll(
+      ".categoryButton"
+    )
+    .forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            const category =
+              button.dataset.category;
+
+
+            currentPage =
+              1;
+
+
+            loadProducts(
+              category,
+              1
+            );
+
+          }
+        );
+
+      }
+    );
 
 }
 
 
 // =====================================================
-// Category Tiles
+// Category tiles
 // =====================================================
 
 function renderCategoryTiles() {
@@ -462,31 +547,38 @@ function renderCategoryTiles() {
 
 
   if (!container) {
+
     return;
+
   }
 
 
   container.innerHTML =
     categories
       .map(
-        category => `
+        (category, index) => `
 
           <button
             class="categoryTile"
-            data-category="${escapeAttribute(
+            data-category="${escapeHtml(
               category
             )}"
           >
 
-            <span class="categoryTileNumber">
+            <span
+              class="categoryTileNumber"
+            >
               ${String(
-                categories.indexOf(
-                  category
-                ) + 1
-              ).padStart(2, "0")}
+                index + 1
+              ).padStart(
+                2,
+                "0"
+              )}
             </span>
 
-            <span class="categoryTileName">
+            <span
+              class="categoryTileName"
+            >
               ${escapeHtml(
                 category
               )}
@@ -514,9 +606,20 @@ function renderCategoryTiles() {
               button.dataset.category;
 
 
-            setCategory(
-              category
+            loadProducts(
+              category,
+              1
             );
+
+
+            document
+              .getElementById(
+                "finds"
+              )
+              ?.scrollIntoView({
+                behavior:
+                  "smooth"
+              });
 
           }
         );
@@ -528,356 +631,7 @@ function renderCategoryTiles() {
 
 
 // =====================================================
-// Category Navigation
-// =====================================================
-
-function renderCategories() {
-
-  const container =
-    document.getElementById(
-      "categoryBar"
-    );
-
-
-  if (!container) {
-    return;
-  }
-
-
-  const all =
-    [
-      "ALL",
-      ...categories
-    ];
-
-
-  container.innerHTML =
-    all
-      .map(
-        category => `
-
-          <button
-            class="categoryButton ${
-              category ===
-              currentCategory
-                ? "active"
-                : ""
-            }"
-            data-category="${escapeAttribute(
-              category
-            )}"
-          >
-            ${escapeHtml(
-              category
-            )}
-          </button>
-
-        `
-      )
-      .join("");
-
-
-  container
-    .querySelectorAll(
-      ".categoryButton"
-    )
-    .forEach(
-      button => {
-
-        button.addEventListener(
-          "click",
-          () => {
-
-            setCategory(
-              button.dataset.category
-            );
-
-          }
-        );
-
-      }
-    );
-
-}
-
-
-// =====================================================
-// 设置分类
-// =====================================================
-
-async function setCategory(
-  category
-) {
-
-  currentCategory =
-    category;
-
-  currentPage = 1;
-
-
-  renderCategories();
-
-
-  if (
-    category === "ALL"
-  ) {
-
-    await loadAllFirstPages();
-
-  } else {
-
-    await loadCategory(
-      category,
-      1
-    );
-
-  }
-
-
-  const finds =
-    document.getElementById(
-      "finds"
-    );
-
-
-  if (finds) {
-
-    finds.scrollIntoView({
-      behavior: "smooth"
-    });
-
-  }
-
-}
-
-
-// =====================================================
-// ALL
-//
-// 为了避免一次请求全部数据，
-// 每个分类只读取第一页。
-// =====================================================
-
-async function loadAllFirstPages() {
-
-  if (isLoading) {
-    return;
-  }
-
-
-  isLoading = true;
-
-
-  const status =
-    document.getElementById(
-      "status"
-    );
-
-
-  const grid =
-    document.getElementById(
-      "productGrid"
-    );
-
-
-  if (status) {
-
-    status.textContent =
-      "Loading products...";
-
-  }
-
-
-  if (grid) {
-
-    grid.innerHTML = `
-
-      <div class="loadingState">
-
-        <div class="loadingSpinner"></div>
-
-        <p>
-          Loading products...
-        </p>
-
-      </div>
-
-    `;
-
-  }
-
-
-  try {
-
-    const allProducts = [];
-
-
-    // 一次只请求一个分类。
-    // 避免 Apps Script 同时执行 8 个大请求。
-
-    for (
-      const category of categories
-    ) {
-
-      try {
-
-        const data =
-          await fetchCategory(
-            category,
-            1
-          );
-
-
-        const items =
-          (data.products || [])
-            .map(
-              item => ({
-
-                category:
-                  category,
-
-                name:
-                  item.name || "",
-
-                price:
-                  item.price ?? "",
-
-                sourceUrl:
-                  item.sourceUrl ||
-                  item.url ||
-                  "",
-
-                imageUrl:
-                  item.imageUrl ||
-                  item.image ||
-                  "",
-
-                productId:
-                  item.productId ||
-                  extractProductId(
-                    item.sourceUrl ||
-                    item.url ||
-                    ""
-                  )
-
-              })
-            );
-
-
-        allProducts.push(
-          ...items
-        );
-
-      } catch (categoryError) {
-
-        console.error(
-          "Category failed:",
-          category,
-          categoryError
-        );
-
-      }
-
-    }
-
-
-    products =
-      allProducts;
-
-
-    currentCategory =
-      "ALL";
-
-
-    currentPage =
-      1;
-
-
-    // ALL 模式这里不使用一个假的总页数。
-    // 下一页会继续请求各分类下一页。
-
-    totalPages =
-      calculateAllPages();
-
-
-    renderCategories();
-
-    renderProducts();
-
-    renderPagination();
-
-    updateStatus(
-      allProducts.length
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      error
-    );
-
-
-    if (grid) {
-
-      grid.innerHTML = `
-
-        <div class="emptyState">
-
-          <div class="emptyStateIcon">
-            !
-          </div>
-
-          <h3>
-            Unable to load products
-          </h3>
-
-          <p>
-            ${escapeHtml(
-              error.message ||
-              "Failed to fetch"
-            )}
-          </p>
-
-        </div>
-
-      `;
-
-    }
-
-  } finally {
-
-    isLoading = false;
-
-  }
-
-}
-
-
-// =====================================================
-// ALL 页数
-// =====================================================
-
-function calculateAllPages() {
-
-  if (!products.length) {
-    return 1;
-  }
-
-
-  return Math.max(
-    1,
-    Math.ceil(
-      products.length /
-      PAGE_SIZE
-    )
-  );
-
-}
-
-
-// =====================================================
-// 产品渲染
+// Products
 // =====================================================
 
 function renderProducts() {
@@ -889,7 +643,9 @@ function renderProducts() {
 
 
   if (!grid) {
+
     return;
+
   }
 
 
@@ -902,8 +658,8 @@ function renderProducts() {
   const search =
     searchInput
       ? searchInput.value
-          .toLowerCase()
           .trim()
+          .toLowerCase()
       : "";
 
 
@@ -915,27 +671,14 @@ function renderProducts() {
 
     filtered =
       products.filter(
-        product => {
-
-          return (
-            String(
-              product.name
+        product =>
+          String(
+            product.name
+          )
+            .toLowerCase()
+            .includes(
+              search
             )
-              .toLowerCase()
-              .includes(
-                search
-              ) ||
-
-            String(
-              product.category
-            )
-              .toLowerCase()
-              .includes(
-                search
-              )
-          );
-
-        }
       );
 
   }
@@ -974,26 +717,13 @@ function renderProducts() {
         product => {
 
           const url =
-            getProductUrl(
-              product
-            );
+            product.sourceUrl ||
+            "#";
 
 
           const image =
-            product.imageUrl;
-
-
-          const name =
-            product.name ||
-            "Product";
-
-
-          const price =
-            product.price !== "" &&
-            product.price !== null &&
-            product.price !== undefined
-              ? product.price
-              : "";
+            product.imageUrl ||
+            "";
 
 
           return `
@@ -1004,7 +734,7 @@ function renderProducts() {
 
               <a
                 class="productImageLink"
-                href="${escapeAttribute(
+                href="${escapeHtml(
                   url
                 )}"
                 target="_blank"
@@ -1016,16 +746,15 @@ function renderProducts() {
                     ? `
                       <img
                         class="productImage"
-                        src="${escapeAttribute(
+                        src="${escapeHtml(
                           image
                         )}"
-                        alt="${escapeAttribute(
-                          name
+                        alt="${escapeHtml(
+                          product.name
                         )}"
                         loading="lazy"
                         onerror="
                           this.style.display='none';
-                          this.parentElement.classList.add('imageFailed');
                         "
                       >
                     `
@@ -1036,42 +765,49 @@ function renderProducts() {
                     `
                 }
 
-                <div class="productImageOverlay">
-                  VIEW PRODUCT
-                </div>
-
               </a>
 
 
-              <div class="productInfo">
+              <div
+                class="productInfo"
+              >
 
-                <div class="productCategory">
+                <div
+                  class="productCategory"
+                >
                   ${escapeHtml(
-                    product.category
+                    currentCategory
                   )}
                 </div>
 
-                <h3 class="productName">
+
+                <h3
+                  class="productName"
+                >
                   ${escapeHtml(
-                    name
+                    product.name
                   )}
                 </h3>
 
+
                 ${
-                  price !== ""
+                  product.price
                     ? `
-                      <div class="productPrice">
+                      <div
+                        class="productPrice"
+                      >
                         ${escapeHtml(
-                          price
+                          product.price
                         )}
                       </div>
                     `
                     : ""
                 }
 
+
                 <a
                   class="productButton"
-                  href="${escapeAttribute(
+                  href="${escapeHtml(
                     url
                   )}"
                   target="_blank"
@@ -1094,19 +830,50 @@ function renderProducts() {
 
 
 // =====================================================
-// 分页
+// Pagination
 // =====================================================
 
 function renderPagination() {
 
-  const container =
+  let container =
     document.getElementById(
       "pagination"
     );
 
 
   if (!container) {
-    return;
+
+    const grid =
+      document.getElementById(
+        "productGrid"
+      );
+
+
+    if (!grid) {
+
+      return;
+
+    }
+
+
+    container =
+      document.createElement(
+        "div"
+      );
+
+
+    container.id =
+      "pagination";
+
+
+    container.className =
+      "pagination";
+
+
+    grid.after(
+      container
+    );
+
   }
 
 
@@ -1137,7 +904,9 @@ function renderPagination() {
     </button>
 
 
-    <span class="paginationInfo">
+    <span
+      class="paginationInfo"
+    >
       PAGE ${currentPage}
       /
       ${totalPages}
@@ -1178,15 +947,15 @@ function renderPagination() {
       () => {
 
         if (
-          currentPage <= 1
+          currentPage > 1
         ) {
-          return;
+
+          loadProducts(
+            currentCategory,
+            currentPage - 1
+          );
+
         }
-
-
-        goToPage(
-          currentPage - 1
-        );
 
       }
     );
@@ -1201,206 +970,19 @@ function renderPagination() {
       () => {
 
         if (
-          currentPage >= totalPages
+          currentPage <
+          totalPages
         ) {
-          return;
-        }
 
-
-        goToPage(
-          currentPage + 1
-        );
-
-      }
-    );
-
-  }
-
-}
-
-
-// =====================================================
-// 下一页
-// =====================================================
-
-async function goToPage(
-  page
-) {
-
-  if (
-    page < 1
-  ) {
-    return;
-  }
-
-
-  if (
-    page > totalPages
-  ) {
-    return;
-  }
-
-
-  if (
-    currentCategory === "ALL"
-  ) {
-
-    await loadAllPage(
-      page
-    );
-
-  } else {
-
-    await loadCategory(
-      currentCategory,
-      page
-    );
-
-  }
-
-
-  window.scrollTo({
-    top:
-      document.getElementById(
-        "finds"
-      )?.offsetTop || 0,
-    behavior:
-      "smooth"
-  });
-
-}
-
-
-// =====================================================
-// ALL 下一页
-//
-// 每个分类只请求对应页。
-// 然后把结果合并。
-// =====================================================
-
-async function loadAllPage(
-  page
-) {
-
-  if (isLoading) {
-    return;
-  }
-
-
-  isLoading = true;
-
-
-  const status =
-    document.getElementById(
-      "status"
-    );
-
-
-  if (status) {
-
-    status.textContent =
-      "Loading products...";
-
-  }
-
-
-  try {
-
-    const allProducts = [];
-
-
-    for (
-      const category of categories
-    ) {
-
-      try {
-
-        const data =
-          await fetchCategory(
-            category,
-            page
+          loadProducts(
+            currentCategory,
+            currentPage + 1
           );
 
-
-        const items =
-          (data.products || [])
-            .map(
-              item => ({
-
-                category:
-                  category,
-
-                name:
-                  item.name || "",
-
-                price:
-                  item.price ?? "",
-
-                sourceUrl:
-                  item.sourceUrl ||
-                  item.url ||
-                  "",
-
-                imageUrl:
-                  item.imageUrl ||
-                  item.image ||
-                  "",
-
-                productId:
-                  item.productId ||
-                  extractProductId(
-                    item.sourceUrl ||
-                    item.url ||
-                    ""
-                  )
-
-              })
-            );
-
-
-        allProducts.push(
-          ...items
-        );
-
-      } catch (error) {
-
-        console.error(
-          category,
-          error
-        );
+        }
 
       }
-
-    }
-
-
-    products =
-      allProducts;
-
-
-    currentPage =
-      page;
-
-
-    totalPages =
-      Math.max(
-        1,
-        page
-      );
-
-
-    renderProducts();
-
-    renderPagination();
-
-    updateStatus(
-      allProducts.length
     );
-
-
-  } finally {
-
-    isLoading = false;
 
   }
 
@@ -1408,7 +990,7 @@ async function loadAllPage(
 
 
 // =====================================================
-// 搜索
+// Search
 // =====================================================
 
 function setupSearch() {
@@ -1420,7 +1002,9 @@ function setupSearch() {
 
 
   if (!input) {
+
     return;
+
   }
 
 
@@ -1437,12 +1021,12 @@ function setupSearch() {
 
 
 // =====================================================
-// Hero 搜索
+// Hero Search
 // =====================================================
 
 function setupHeroSearch() {
 
-  const heroInput =
+  const input =
     document.getElementById(
       "heroSearchInput"
     );
@@ -1455,26 +1039,30 @@ function setupHeroSearch() {
 
 
   if (
-    !heroInput ||
+    !input ||
     !searchInput
   ) {
+
     return;
+
   }
 
 
-  heroInput.addEventListener(
+  input.addEventListener(
     "keydown",
     event => {
 
       if (
         event.key !== "Enter"
       ) {
+
         return;
+
       }
 
 
       searchInput.value =
-        heroInput.value;
+        input.value;
 
 
       currentCategory =
@@ -1485,9 +1073,10 @@ function setupHeroSearch() {
         1;
 
 
-      renderCategories();
-
-      loadAllFirstPages();
+      loadProducts(
+        "ALL",
+        1
+      );
 
 
       document
@@ -1506,131 +1095,39 @@ function setupHeroSearch() {
 
 
 // =====================================================
-// Agent Selector
+// Agent
 // =====================================================
 
-function setupAgentSelector() {
+function setupAgents() {
 
-  const headerSelect =
-    document.getElementById(
-      "agentSelect"
+  const selects =
+    document.querySelectorAll(
+      "#agentSelect, #desktopAgentSelect"
     );
 
 
-  const desktopSelect =
-    document.getElementById(
-      "desktopAgentSelect"
-    );
+  selects.forEach(
+    select => {
+
+      select.addEventListener(
+        "change",
+        () => {
+
+          currentAgent =
+            select.value;
 
 
-  function sync(
-    value
-  ) {
+          selects.forEach(
+            other => {
 
-    currentAgent =
-      value;
+              other.value =
+                currentAgent;
 
+            }
+          );
 
-    if (
-      headerSelect &&
-      headerSelect.value !== value
-    ) {
-
-      headerSelect.value =
-        value;
-
-    }
-
-
-    if (
-      desktopSelect &&
-      desktopSelect.value !== value
-    ) {
-
-      desktopSelect.value =
-        value;
-
-    }
-
-
-    renderProducts();
-
-  }
-
-
-  if (headerSelect) {
-
-    headerSelect.addEventListener(
-      "change",
-      () => {
-
-        sync(
-          headerSelect.value
-        );
-
-      }
-    );
-
-  }
-
-
-  if (desktopSelect) {
-
-    desktopSelect.addEventListener(
-      "change",
-      () => {
-
-        sync(
-          desktopSelect.value
-        );
-
-      }
-    );
-
-  }
-
-}
-
-
-// =====================================================
-// Refresh
-// =====================================================
-
-function setupRefreshButton() {
-
-  const button =
-    document.getElementById(
-      "refreshButton"
-    );
-
-
-  if (!button) {
-    return;
-  }
-
-
-  button.addEventListener(
-    "click",
-    async () => {
-
-      currentPage =
-        1;
-
-
-      if (
-        currentCategory === "ALL"
-      ) {
-
-        await loadAllFirstPages();
-
-      } else {
-
-        await loadCategory(
-          currentCategory,
-          1
-        );
-
-      }
+        }
+      );
 
     }
   );
@@ -1639,7 +1136,41 @@ function setupRefreshButton() {
 
 
 // =====================================================
-// Mobile menu
+// Refresh
+// =====================================================
+
+function setupRefresh() {
+
+  const button =
+    document.getElementById(
+      "refreshButton"
+    );
+
+
+  if (!button) {
+
+    return;
+
+  }
+
+
+  button.addEventListener(
+    "click",
+    () => {
+
+      loadProducts(
+        currentCategory,
+        currentPage
+      );
+
+    }
+  );
+
+}
+
+
+// =====================================================
+// Mobile Menu
 // =====================================================
 
 function setupMobileMenu() {
@@ -1660,7 +1191,9 @@ function setupMobileMenu() {
     !button ||
     !menu
   ) {
+
     return;
+
   }
 
 
@@ -1679,45 +1212,12 @@ function setupMobileMenu() {
 
 
 // =====================================================
-// Logo
-// =====================================================
-
-function setupLogo() {
-
-  const logo =
-    document.querySelector(
-      ".logo"
-    );
-
-
-  if (!logo) {
-    return;
-  }
-
-
-  logo.addEventListener(
-    "click",
-    () => {
-
-      window.scrollTo({
-        top: 0,
-        behavior:
-          "smooth"
-      });
-
-    }
-  );
-
-}
-
-
-// =====================================================
-// 初始化
+// Init
 // =====================================================
 
 document.addEventListener(
   "DOMContentLoaded",
-  async () => {
+  () => {
 
     renderCategoryTiles();
 
@@ -1727,17 +1227,22 @@ document.addEventListener(
 
     setupHeroSearch();
 
-    setupAgentSelector();
+    setupAgents();
 
-    setupRefreshButton();
+    setupRefresh();
 
     setupMobileMenu();
 
-    setupLogo();
 
+    // 首页第一次只读取
+    // 每个分类对应的第一页数据。
+    //
+    // 不读取整个 Spreadsheet。
 
-    // 首次只加载每个分类第一页
-    await loadAllFirstPages();
+    loadProducts(
+      "ALL",
+      1
+    );
 
   }
 );
