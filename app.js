@@ -1,5 +1,5 @@
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbxn9DVmH7b3isG3CyaNEJ7b6DrGrLimfIc7YVX9YU1NkAftIfcQPNyFNKFP8ko_d7JX/exec";
+  "https://script.google.com/macros/s/AKfycbxtFiRVCd9Y1MZ6l8-YlmmzRa97RZ6xppFLYoQgTEOBddtlx6wE6q9PnUaCdu3D94BR/exec";
 
 
 const categories = [
@@ -12,157 +12,197 @@ const categories = [
 ];
 
 
-let allData = {};
-let currentCategory = "ALL";
+let allProducts = [];
+let currentCategory = "SNEAKERS";
 let currentAgent = "litbuy";
 
 
-const categoryNav =
-  document.getElementById("categoryNav");
+document.addEventListener("DOMContentLoaded", () => {
 
-const productGrid =
-  document.getElementById("productGrid");
+  setupEvents();
+  loadProducts();
 
-const searchInput =
-  document.getElementById("searchInput");
+});
 
-const agentSelect =
-  document.getElementById("agentSelect");
 
-const refreshBtn =
-  document.getElementById("refreshBtn");
+function setupEvents() {
 
-const status =
-  document.getElementById("status");
+  const searchInput =
+    document.getElementById("searchInput");
 
-const emptyMessage =
-  document.getElementById("emptyMessage");
+  const agentSelect =
+    document.getElementById("agentSelect");
+
+  const refreshBtn =
+    document.getElementById("refreshBtn");
+
+
+  if (searchInput) {
+
+    searchInput.addEventListener(
+      "input",
+      renderProducts
+    );
+
+  }
+
+
+  if (agentSelect) {
+
+    agentSelect.addEventListener(
+      "change",
+      () => {
+
+        currentAgent =
+          agentSelect.value;
+
+        renderProducts();
+
+      }
+    );
+
+  }
+
+
+  if (refreshBtn) {
+
+    refreshBtn.addEventListener(
+      "click",
+      loadProducts
+    );
+
+  }
+
+}
 
 
 async function loadProducts() {
 
-  status.textContent = "Loading...";
+  setStatus("Loading products...");
 
   try {
 
     const response = await fetch(
-      API_URL + "?time=" + Date.now()
+      API_URL + "?time=" + Date.now(),
+      {
+        method: "GET",
+        cache: "no-store"
+      }
     );
+
 
     if (!response.ok) {
+
       throw new Error(
-        "HTTP " + response.status
+        "API error: " + response.status
       );
+
     }
 
-    const data = await response.json();
 
-    console.log("API DATA:", data);
-    console.log(
-      "API KEYS:",
-      Object.keys(data)
-    );
+    const data =
+      await response.json();
 
-    allData = data;
+
+    allProducts = [];
+
 
     categories.forEach(category => {
 
       const products =
-        getCategoryData(category);
+        Array.isArray(data[category])
+          ? data[category]
+          : [];
 
-      console.log(
-        category +
-        ": " +
-        products.length +
-        " products"
-      );
+
+      products.forEach(product => {
+
+        allProducts.push({
+
+          category: category,
+
+          name:
+            product.name || "",
+
+          price:
+            product.price ?? "",
+
+          sourceUrl:
+            product.sourceUrl || "",
+
+          imageUrl:
+            product.imageUrl || "",
+
+          productId:
+            product.productId ||
+            extractProductId(
+              product.sourceUrl || ""
+            )
+
+        });
+
+      });
 
     });
 
-    renderCategories();
+
+    renderCategoryNav();
+
     renderProducts();
 
-    const total =
-      categories.reduce(
-        (sum, category) =>
-          sum +
-          getCategoryData(category).length,
-        0
-      );
 
-    status.textContent =
-      total + " products";
+    setStatus(
+      allProducts.length +
+      " products"
+    );
+
 
   } catch (error) {
 
     console.error(
-      "API ERROR:",
+      "Failed to load products:",
       error
     );
 
-    status.textContent =
-      "Failed to load products";
 
-    productGrid.innerHTML = "";
-
-    emptyMessage.style.display =
-      "block";
-
-  }
-}
+    setStatus(
+      "Failed to load products"
+    );
 
 
-function getCategoryData(category) {
-
-  if (
-    allData &&
-    Array.isArray(allData[category])
-  ) {
-    return allData[category];
-  }
-
-  const key =
-    Object.keys(allData || {})
-      .find(
-        k =>
-          k.toLowerCase() ===
-          category.toLowerCase()
+    const emptyMessage =
+      document.getElementById(
+        "emptyMessage"
       );
 
-  if (
-    key &&
-    Array.isArray(allData[key])
-  ) {
-    return allData[key];
+
+    if (emptyMessage) {
+
+      emptyMessage.textContent =
+        "Unable to load products.";
+
+      emptyMessage.style.display =
+        "block";
+
+    }
+
   }
 
-  return [];
 }
 
 
-function renderCategories() {
+function renderCategoryNav() {
 
-  categoryNav.innerHTML = "";
+  const nav =
+    document.getElementById(
+      "categoryNav"
+    );
 
-  const allButton =
-    document.createElement("button");
 
-  allButton.textContent = "ALL";
-  allButton.className =
-    currentCategory === "ALL"
-      ? "active"
-      : "";
+  if (!nav) return;
 
-  allButton.onclick = () => {
 
-    currentCategory = "ALL";
-
-    renderCategories();
-    renderProducts();
-
-  };
-
-  categoryNav.appendChild(allButton);
+  nav.innerHTML = "";
 
 
   categories.forEach(category => {
@@ -170,128 +210,105 @@ function renderCategories() {
     const button =
       document.createElement("button");
 
+
+    button.className =
+      "category-button";
+
+
+    if (
+      category === currentCategory
+    ) {
+
+      button.classList.add(
+        "active"
+      );
+
+    }
+
+
     button.textContent =
       category;
 
-    button.className =
-      currentCategory === category
-        ? "active"
-        : "";
 
-    button.onclick = () => {
+    button.addEventListener(
+      "click",
+      () => {
 
-      currentCategory =
-        category;
+        currentCategory =
+          category;
 
-      renderCategories();
-      renderProducts();
 
-    };
+        document
+          .querySelectorAll(
+            ".category-button"
+          )
+          .forEach(btn => {
 
-    categoryNav.appendChild(button);
+            btn.classList.remove(
+              "active"
+            );
+
+          });
+
+
+        button.classList.add(
+          "active"
+        );
+
+
+        renderProducts();
+
+      }
+    );
+
+
+    nav.appendChild(button);
 
   });
-}
 
-
-function getProductUrl(product) {
-
-  const id =
-    product.productId;
-
-  const sourceUrl =
-    product.sourceUrl || "";
-
-  switch (currentAgent) {
-
-    case "litbuy":
-
-      return sourceUrl;
-
-    case "oopbuy":
-
-      return id
-        ? `https://oopbuy.com/product/weidian/${id}`
-        : sourceUrl;
-
-    case "kakobuy":
-
-      return id
-        ? `https://item.kakobuy.com/item/details?url=https://weidian.com/item.html?itemID=${id}`
-        : sourceUrl;
-
-    case "hipobuy":
-
-      return id
-        ? `https://hipobuy.com/product/weidian/${id}`
-        : sourceUrl;
-
-    case "lovegobuy":
-
-      return id
-        ? `https://lovegobuy.com/product?id=${id}&shop_type=weidian`
-        : sourceUrl;
-
-    case "rizzitgo":
-
-      return id
-        ? `https://rizzitgo.com/detail-page/?goodsId=${id}&source=3&rno=75FB20`
-        : sourceUrl;
-
-    case "boonbuy":
-
-      return id
-        ? `https://boonbuy.com/product/2/${id}`
-        : sourceUrl;
-
-    case "usfans":
-
-      return id
-        ? `https://usfans.com/product/3/${id}`
-        : sourceUrl;
-
-    default:
-
-      return sourceUrl;
-  }
 }
 
 
 function renderProducts() {
 
-  productGrid.innerHTML = "";
-
-  const keyword =
-    searchInput.value
-      .trim()
-      .toLowerCase();
+  const grid =
+    document.getElementById(
+      "productGrid"
+    );
 
 
-  let products = [];
+  const emptyMessage =
+    document.getElementById(
+      "emptyMessage"
+    );
 
 
-  if (currentCategory === "ALL") {
+  if (!grid) return;
 
-    categories.forEach(category => {
 
-      products =
-        products.concat(
-          getCategoryData(category)
-        );
+  const searchInput =
+    document.getElementById(
+      "searchInput"
+    );
 
-    });
 
-  } else {
+  const search =
+    searchInput
+      ? searchInput.value
+          .trim()
+          .toLowerCase()
+      : "";
 
-    products =
-      getCategoryData(
+
+  let products =
+    allProducts.filter(
+      product =>
+        product.category ===
         currentCategory
-      );
-
-  }
+    );
 
 
-  if (keyword) {
+  if (search) {
 
     products =
       products.filter(product => {
@@ -301,144 +318,452 @@ function renderProducts() {
             product.name || ""
           ).toLowerCase();
 
-        return name.includes(keyword);
+
+        const sourceUrl =
+          String(
+            product.sourceUrl || ""
+          ).toLowerCase();
+
+
+        return (
+          name.includes(search) ||
+          sourceUrl.includes(search)
+        );
 
       });
 
   }
 
 
+  grid.innerHTML = "";
+
+
   if (!products.length) {
 
-    emptyMessage.style.display =
-      "block";
+    if (emptyMessage) {
+
+      emptyMessage.textContent =
+        "No products found.";
+
+      emptyMessage.style.display =
+        "block";
+
+    }
 
     return;
 
   }
 
 
-  emptyMessage.style.display =
-    "none";
+  if (emptyMessage) {
+
+    emptyMessage.style.display =
+      "none";
+
+  }
+
+
+  const fragment =
+    document.createDocumentFragment();
 
 
   products.forEach(product => {
 
     const card =
-      document.createElement("div");
-
-    card.className =
-      "product-card";
+      createProductCard(product);
 
 
-    const image =
-      document.createElement("img");
-
-    image.className =
-      "product-image";
-
-    image.src =
-      product.imageUrl || "";
-
-    image.alt =
-      product.name || "Product";
-
-    image.loading =
-      "lazy";
-
-
-    image.onerror = () => {
-
-      image.style.display =
-        "none";
-
-    };
-
-
-    const info =
-      document.createElement("div");
-
-    info.className =
-      "product-info";
-
-
-    const name =
-      document.createElement("div");
-
-    name.className =
-      "product-name";
-
-    name.textContent =
-      product.name || "";
-
-
-    const price =
-      document.createElement("div");
-
-    price.className =
-      "product-price";
-
-    price.textContent =
-      product.price || "";
-
-
-    const link =
-      document.createElement("a");
-
-    link.className =
-      "product-link";
-
-    link.href =
-      getProductUrl(product);
-
-    link.target =
-      "_blank";
-
-    link.rel =
-      "noopener noreferrer";
-
-    link.textContent =
-      "VIEW PRODUCT";
-
-
-    info.appendChild(name);
-    info.appendChild(price);
-    info.appendChild(link);
-
-
-    card.appendChild(image);
-    card.appendChild(info);
-
-    productGrid.appendChild(card);
+    fragment.appendChild(card);
 
   });
+
+
+  grid.appendChild(fragment);
 
 }
 
 
-searchInput.addEventListener(
-  "input",
-  renderProducts
-);
+function createProductCard(product) {
+
+  const card =
+    document.createElement("article");
 
 
-agentSelect.addEventListener(
-  "change",
-  () => {
+  card.className =
+    "product-card";
 
-    currentAgent =
-      agentSelect.value;
 
-    renderProducts();
+  const imageWrap =
+    document.createElement("div");
+
+
+  imageWrap.className =
+    "product-image-wrap";
+
+
+  const image =
+    document.createElement("img");
+
+
+  image.className =
+    "product-image";
+
+
+  image.alt =
+    product.name || "Product";
+
+
+  image.loading =
+    "lazy";
+
+
+  image.decoding =
+    "async";
+
+
+  /*
+   * 这里直接使用 Apps Script 返回的
+   * CellImage URL
+   */
+  if (product.imageUrl) {
+
+    image.src =
+      product.imageUrl;
+
+
+    image.addEventListener(
+      "error",
+      () => {
+
+        image.style.display =
+          "none";
+
+
+        imageWrap.classList.add(
+          "image-error"
+        );
+
+      },
+      {
+        once: true
+      }
+    );
+
+  } else {
+
+    image.style.display =
+      "none";
+
+    imageWrap.classList.add(
+      "image-error"
+    );
 
   }
-);
 
 
-refreshBtn.addEventListener(
-  "click",
-  loadProducts
-);
+  imageWrap.appendChild(
+    image
+  );
 
 
-loadProducts();
+  const info =
+    document.createElement("div");
+
+
+  info.className =
+    "product-info";
+
+
+  const name =
+    document.createElement("h3");
+
+
+  name.className =
+    "product-name";
+
+
+  name.textContent =
+    product.name || "Unnamed Product";
+
+
+  const price =
+    document.createElement("div");
+
+
+  price.className =
+    "product-price";
+
+
+  price.textContent =
+    formatPrice(product.price);
+
+
+  const button =
+    document.createElement("a");
+
+
+  button.className =
+    "product-button";
+
+
+  button.textContent =
+    "VIEW PRODUCT";
+
+
+  button.target =
+    "_blank";
+
+
+  button.rel =
+    "noopener noreferrer";
+
+
+  button.href =
+    getProductUrl(
+      product,
+      currentAgent
+    );
+
+
+  info.appendChild(name);
+  info.appendChild(price);
+  info.appendChild(button);
+
+
+  card.appendChild(
+    imageWrap
+  );
+
+  card.appendChild(
+    info
+  );
+
+
+  return card;
+
+}
+
+
+function formatPrice(price) {
+
+  if (
+    price === null ||
+    price === undefined ||
+    price === ""
+  ) {
+
+    return "";
+
+  }
+
+
+  const number =
+    Number(price);
+
+
+  if (
+    Number.isNaN(number)
+  ) {
+
+    return String(price);
+
+  }
+
+
+  return "$" +
+    number.toFixed(2);
+
+}
+
+
+function extractProductId(url) {
+
+  if (!url) {
+    return "";
+  }
+
+
+  let match;
+
+
+  /*
+   * Litbuy /product/2/7835834924
+   */
+  match =
+    url.match(
+      /\/product\/[^\/]+\/(\d+)/i
+    );
+
+
+  if (match) {
+    return match[1];
+  }
+
+
+  /*
+   * Weidian itemID
+   */
+  match =
+    url.match(
+      /itemID[=\/](\d+)/i
+    );
+
+
+  if (match) {
+    return match[1];
+  }
+
+
+  /*
+   * goodsId
+   */
+  match =
+    url.match(
+      /goodsId[=\/](\d+)/i
+    );
+
+
+  if (match) {
+    return match[1];
+  }
+
+
+  /*
+   * ?id=
+   */
+  match =
+    url.match(
+      /[?&]id=(\d+)/i
+    );
+
+
+  if (match) {
+    return match[1];
+  }
+
+
+  return "";
+
+}
+
+
+function getProductUrl(
+  product,
+  agent
+) {
+
+  /*
+   * LITBUY
+   *
+   * 保留 Google Sheet 里的原始链接
+   * 不修改 inviteCode
+   */
+  if (agent === "litbuy") {
+
+    return product.sourceUrl || "#";
+
+  }
+
+
+  const id =
+    product.productId ||
+    extractProductId(
+      product.sourceUrl
+    );
+
+
+  if (!id) {
+
+    return product.sourceUrl || "#";
+
+  }
+
+
+  switch (agent) {
+
+
+    case "oopbuy":
+
+      return (
+        "https://oopbuy.com/product/weidian/" +
+        id
+      );
+
+
+    case "kakobuy":
+
+      return (
+        "https://item.kakobuy.com/item/details?url=https://weidian.com/item.html?itemID=" +
+        id
+      );
+
+
+    case "hipobuy":
+
+      return (
+        "https://hipobuy.com/product/weidian/" +
+        id
+      );
+
+
+    case "lovegobuy":
+
+      return (
+        "https://lovegobuy.com/product?id=" +
+        id +
+        "&shop_type=weidian"
+      );
+
+
+    case "rizzitgo":
+
+      return (
+        "https://rizzitgo.com/detail-page/?goodsId=" +
+        id +
+        "&source=3&rno=75FB20"
+      );
+
+
+    case "boonbuy":
+
+      return (
+        "https://boonbuy.com/product/2/" +
+        id
+      );
+
+
+    case "usfans":
+
+      return (
+        "https://usfans.com/product/3/" +
+        id
+      );
+
+
+    default:
+
+      return (
+        product.sourceUrl || "#"
+      );
+
+  }
+
+}
+
+
+function setStatus(text) {
+
+  const status =
+    document.getElementById(
+      "status"
+    );
+
+
+  if (status) {
+
+    status.textContent =
+      text;
+
+  }
+
+}
