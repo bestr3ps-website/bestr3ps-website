@@ -1,497 +1,584 @@
-const API_URL =
-  "https://script.google.com/macros/s/AKfycbxtFiRVCd9Y1MZ6l8-YlmmzRa97RZ6xppFLYoQgTEOBddtlx6wE6q9PnUaCdu3D94BR/exec";
-
-
 /* =========================================================
-   CATEGORIES
-   ========================================================= */
+   BESTR3PS
+   Google Sheets → Apps Script → Website
 
-const CATEGORIES = [
+   IMPORTANT:
+   Backend/API is NOT changed.
+========================================================= */
+
+
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbxn9DVmH7b3isG3CyaNEJ7b6DrGrLimfIc7YVX9YU1NkAftIfcQPNyFNKFP8ko_d7JX/exec";
+
+
+let products = [];
+
+
+// =========================================================
+// ONLY THESE 6 CATEGORIES
+// =========================================================
+
+const categories = [
   "SNEAKERS",
   "T-SHIRTS/SHORTS",
   "HOODIE/PANTS",
   "DOWNJACKET",
   "ACCESSORIES",
-  "BAGS",
-  "HOTSALE"
+  "BAGS"
 ];
 
 
-/* =========================================================
-   STATE
-   ========================================================= */
-
-let allProducts = [];
-
 let currentCategory = "ALL";
 
-let currentAgent = "LITBUY";
-
-let isLoading = false;
+let currentAgent = "litbuy";
 
 
-/* =========================================================
-   INIT
-   ========================================================= */
-
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
-
-    setupCategoryButtons();
-
-    setupAgentButtons();
-
-    setupSearch();
-
-    setupHeroSearch();
-
-    setupRefresh();
-
-    setupMobileMenu();
-
-    loadProducts();
-
-  }
-);
-
-
-/* =========================================================
-   LOAD PRODUCTS
-   ========================================================= */
+// =========================================================
+// LOAD PRODUCTS
+// =========================================================
 
 async function loadProducts() {
 
-  if (isLoading) return;
+  const status =
+    document.getElementById("status");
 
-  isLoading = true;
-
-  setStatus("Loading products...");
-
-  const grid =
-    document.getElementById(
-      "productGrid"
-    );
-
-  if (grid) {
-    grid.innerHTML = `
-      <div class="loadingState">
-        Loading products...
-      </div>
-    `;
+  if (status) {
+    status.textContent = "Loading products...";
   }
 
   try {
 
     const response =
       await fetch(
-        API_URL +
-        "?t=" +
-        Date.now(),
-        {
-          method: "GET",
-          cache: "no-store"
-        }
+        API_URL + "?time=" + Date.now()
       );
 
+
     if (!response.ok) {
+
       throw new Error(
-        "API request failed: " +
-        response.status
+        "HTTP " + response.status
       );
+
     }
+
 
     const data =
       await response.json();
 
 
-    if (!data || data.success === false) {
-
-      throw new Error(
-        data && data.error
-          ? data.error
-          : "Invalid API response"
-      );
-    }
-
-
-    /*
-     * 支持：
-     *
-     * {
-     *   success:true,
-     *   data:{
-     *      SNEAKERS:[...],
-     *      ...
-     *   }
-     * }
-     */
-
-    const source =
-      data.data || data;
-
-
-    allProducts = [];
-
-
-    CATEGORIES.forEach(
-      category => {
-
-        const items =
-          Array.isArray(
-            source[category]
-          )
-            ? source[category]
-            : [];
-
-
-        items.forEach(
-          product => {
-
-            allProducts.push({
-
-              name:
-                product.name || "",
-
-              link:
-                product.link || "",
-
-              price:
-                product.price || "",
-
-              image:
-                product.image || "",
-
-              category:
-                category
-
-            });
-
-          }
-        );
-
-      }
+    console.log(
+      "BESTR3PS API DATA:",
+      data
     );
 
 
-    allProducts =
-      removeDuplicates(
-        allProducts
+    if (data.error) {
+
+      throw new Error(
+        data.message ||
+        "Apps Script error"
       );
 
+    }
+
+
+    products = [];
+
+
+    // -----------------------------------------------------
+    // ONLY LOAD THE 6 TARGET CATEGORIES
+    // -----------------------------------------------------
+
+    categories.forEach(category => {
+
+      let rows =
+        data[category];
+
+
+      /*
+       * If API category name has
+       * small formatting differences,
+       * find it by trimmed lowercase name.
+       */
+
+      if (!Array.isArray(rows)) {
+
+        const key =
+          Object.keys(data).find(k => {
+
+            return (
+              k.trim().toLowerCase() ===
+              category.trim().toLowerCase()
+            );
+
+          });
+
+
+        if (key) {
+
+          rows = data[key];
+
+        }
+
+      }
+
+
+      if (!Array.isArray(rows)) {
+
+        console.log(
+          "No array found for:",
+          category
+        );
+
+        return;
+
+      }
+
+
+      console.log(
+        category,
+        "=>",
+        rows.length,
+        "products"
+      );
+
+
+      rows.forEach(row => {
+
+        if (
+          !row ||
+          typeof row !== "object"
+        ) {
+
+          return;
+
+        }
+
+
+        const name =
+          String(
+            row.name || ""
+          ).trim();
+
+
+        const price =
+          row.price ?? "";
+
+
+        const sourceUrl =
+          String(
+            row.sourceUrl || ""
+          ).trim();
+
+
+        const imageUrl =
+          String(
+            row.imageUrl || ""
+          ).trim();
+
+
+        if (!name) {
+          return;
+        }
+
+
+        if (!sourceUrl) {
+          return;
+        }
+
+
+        products.push({
+
+          category: category,
+
+          name: name,
+
+          price: price,
+
+          sourceUrl: sourceUrl,
+
+          imageUrl: imageUrl,
+
+          productId:
+            extractProductId(
+              sourceUrl
+            )
+
+        });
+
+      });
+
+    });
+
+
+    console.log(
+      "BESTR3PS TOTAL PRODUCTS:",
+      products.length
+    );
+
+
+    renderCategoryTiles();
+
+    renderCategories();
 
     renderProducts();
 
 
-  } catch (error) {
+    const statusText =
+      document.getElementById("status");
 
-    console.error(error);
 
-    allProducts = [];
+    if (statusText) {
 
-    const grid =
-      document.getElementById(
-        "productGrid"
-      );
-
-    if (grid) {
-
-      grid.innerHTML = `
-        <div class="loadingState">
-          Unable to load products
-        </div>
-      `;
+      statusText.textContent =
+        products.length +
+        " products loaded";
 
     }
 
-    setStatus(
-      "Unable to load products"
+
+  } catch (error) {
+
+    console.error(
+      "BESTR3PS LOAD ERROR:",
+      error
     );
 
-  } finally {
 
-    isLoading = false;
+    const statusElement =
+      document.getElementById("status");
+
+
+    if (statusElement) {
+
+      statusElement.textContent =
+        "Failed to load products";
+
+    }
+
+
+    alert(
+      "无法读取 Google Sheet。\n\n" +
+      "错误：" +
+      error.message
+    );
 
   }
+
 }
 
 
-/* =========================================================
-   RENDER
-   ========================================================= */
+// =========================================================
+// EXTRACT PRODUCT ID
+// =========================================================
 
-function renderProducts() {
+function extractProductId(url) {
 
-  const grid =
-    document.getElementById(
-      "productGrid"
-    );
+  if (!url) {
 
-  if (!grid) return;
-
-
-  let visibleProducts =
-    allProducts;
-
-
-  /* CATEGORY */
-
-  if (
-    currentCategory !== "ALL"
-  ) {
-
-    visibleProducts =
-      visibleProducts.filter(
-        product =>
-          product.category ===
-          currentCategory
-      );
+    return "";
 
   }
 
 
-  /* SEARCH */
-
-  const searchInput =
-    document.getElementById(
-      "searchInput"
+  // Litbuy
+  let match =
+    url.match(
+      /\/product\/[^/]+\/(\d+)/i
     );
 
-  const search =
-    searchInput
-      ? searchInput.value
-          .trim()
-          .toLowerCase()
-      : "";
 
+  if (match) {
 
-  if (search) {
-
-    visibleProducts =
-      visibleProducts.filter(
-        product => {
-
-          const name =
-            String(
-              product.name || ""
-            ).toLowerCase();
-
-          const category =
-            String(
-              product.category || ""
-            ).toLowerCase();
-
-          const link =
-            String(
-              product.link || ""
-            ).toLowerCase();
-
-          return (
-            name.includes(search) ||
-            category.includes(search) ||
-            link.includes(search)
-          );
-
-        }
-      );
+    return match[1];
 
   }
 
 
-  setStatus(
-    `${visibleProducts.length} products loaded`
-  );
+  // Weidian itemID
+  match =
+    url.match(
+      /[?&]itemID=(\d+)/i
+    );
 
+
+  if (match) {
+
+    return match[1];
+
+  }
+
+
+  // Rizzitgo goodsId
+  match =
+    url.match(
+      /[?&]goodsId=(\d+)/i
+    );
+
+
+  if (match) {
+
+    return match[1];
+
+  }
+
+
+  // Generic id
+  match =
+    url.match(
+      /[?&]id=(\d+)/i
+    );
+
+
+  if (match) {
+
+    return match[1];
+
+  }
+
+
+  return "";
+
+}
+
+
+// =========================================================
+// GET AGENT PRODUCT URL
+// =========================================================
+
+function getProductUrl(product) {
+
+  const id =
+    product.productId;
+
+
+  // If ID cannot be extracted,
+  // keep original Litbuy URL.
+  if (!id) {
+
+    return product.sourceUrl;
+
+  }
+
+
+  // -------------------------------------------------------
+  // LITBUY
+  // -------------------------------------------------------
 
   if (
-    visibleProducts.length === 0
+    currentAgent === "litbuy"
   ) {
 
-    grid.innerHTML = `
-      <div class="loadingState">
-        No products found
-      </div>
-    `;
+    return product.sourceUrl;
 
+  }
+
+
+  // -------------------------------------------------------
+  // OOPBUY
+  // -------------------------------------------------------
+
+  if (
+    currentAgent === "oopbuy"
+  ) {
+
+    return (
+      "https://oopbuy.com/product/weidian/" +
+      id
+    );
+
+  }
+
+
+  // -------------------------------------------------------
+  // KAKOBUY
+  // -------------------------------------------------------
+
+  if (
+    currentAgent === "kakobuy"
+  ) {
+
+    const weidianUrl =
+      "https://weidian.com/item.html?itemID=" +
+      id;
+
+
+    return (
+      "https://item.kakobuy.com/item/details?url=" +
+      encodeURIComponent(
+        weidianUrl
+      )
+    );
+
+  }
+
+
+  // -------------------------------------------------------
+  // HIPOBUY
+  // -------------------------------------------------------
+
+  if (
+    currentAgent === "hipobuy"
+  ) {
+
+    return (
+      "https://hipobuy.com/product/weidian/" +
+      id
+    );
+
+  }
+
+
+  // -------------------------------------------------------
+  // LOVEGOBUY
+  // -------------------------------------------------------
+
+  if (
+    currentAgent === "lovegobuy"
+  ) {
+
+    return (
+      "https://lovegobuy.com/product?id=" +
+      id +
+      "&shop_type=weidian"
+    );
+
+  }
+
+
+  // -------------------------------------------------------
+  // RIZZITGO
+  // -------------------------------------------------------
+
+  if (
+    currentAgent === "rizzitgo"
+  ) {
+
+    return (
+      "https://rizzitgo.com/detail-page/?goodsId=" +
+      id +
+      "&source=3&rno=75FB20"
+    );
+
+  }
+
+
+  // -------------------------------------------------------
+  // BOONBUY
+  // -------------------------------------------------------
+
+  if (
+    currentAgent === "boonbuy"
+  ) {
+
+    return (
+      "https://boonbuy.com/product/2/" +
+      id
+    );
+
+  }
+
+
+  // -------------------------------------------------------
+  // USFANS
+  // -------------------------------------------------------
+
+  if (
+    currentAgent === "usfans"
+  ) {
+
+    return (
+      "https://usfans.com/product/3/" +
+      id
+    );
+
+  }
+
+
+  return product.sourceUrl;
+
+}
+
+
+// =========================================================
+// CATEGORY TILES ON HOMEPAGE
+// =========================================================
+
+function renderCategoryTiles() {
+
+  const container =
+    document.getElementById(
+      "categoryTiles"
+    );
+
+
+  if (!container) {
     return;
   }
 
 
-  grid.innerHTML =
-    visibleProducts
-      .map(
-        product =>
-          createProductCard(
-            product
-          )
-      )
-      .join("");
-
-}
+  container.innerHTML = "";
 
 
-/* =========================================================
-   PRODUCT CARD
-   ========================================================= */
+  categories.forEach(
+    (category, index) => {
 
-function createProductCard(
-  product
-) {
-
-  const name =
-    escapeHtml(
-      product.name ||
-      "Untitled Product"
-    );
+      const tile =
+        document.createElement(
+          "div"
+        );
 
 
-  const price =
-    escapeHtml(
-      product.price || ""
-    );
+      tile.className =
+        "categoryTile";
 
 
-  const category =
-    escapeHtml(
-      product.category || ""
-    );
+      const number =
+        document.createElement(
+          "div"
+        );
 
 
-  const link =
-    product.link || "";
+      number.className =
+        "categoryTileNumber";
 
 
-  const safeLink =
-    escapeAttribute(
-      link
-    );
+      number.textContent =
+        String(index + 1).padStart(
+          2,
+          "0"
+        );
 
 
-  let imageHTML;
+      const name =
+        document.createElement(
+          "div"
+        );
 
 
-  if (product.image) {
-
-    const image =
-      escapeAttribute(
-        product.image
-      );
-
-    imageHTML = `
-      <div class="productImageWrap">
-        <img
-          class="productImage"
-          src="${image}"
-          alt="${name}"
-          loading="lazy"
-          referrerpolicy="no-referrer"
-          onerror="this.style.display='none'; this.parentElement.querySelector('.imageFallback').style.display='flex';"
-        >
-
-        <div
-          class="noImage imageFallback"
-          style="display:none;"
-        >
-          NO IMAGE
-        </div>
-      </div>
-    `;
-
-  } else {
-
-    imageHTML = `
-      <div class="productImageWrap">
-        <div class="noImage">
-          NO IMAGE
-        </div>
-      </div>
-    `;
-
-  }
+      name.className =
+        "categoryTileName";
 
 
-  return `
-    <article class="productCard">
-
-      <a
-        class="productImageLink"
-        href="${safeLink}"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        ${imageHTML}
-      </a>
-
-      <div class="productInfo">
-
-        <div class="productCategory">
-          ${category}
-        </div>
-
-        <div class="productName">
-          ${name}
-        </div>
-
-        <div class="productBottom">
-
-          <div class="productPrice">
-            ${price}
-          </div>
-
-          <a
-            class="productButton"
-            href="${safeLink}"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            VIEW →
-          </a>
-
-        </div>
-
-      </div>
-
-    </article>
-  `;
-}
+      name.textContent =
+        category;
 
 
-/* =========================================================
-   CATEGORY BUTTONS
-   ========================================================= */
+      tile.appendChild(number);
 
-function setupCategoryButtons() {
-
-  const buttons =
-    document.querySelectorAll(
-      ".categoryButton"
-    );
+      tile.appendChild(name);
 
 
-  buttons.forEach(
-    button => {
-
-      button.addEventListener(
+      tile.addEventListener(
         "click",
-        () => {
-
-          buttons.forEach(
-            item =>
-              item.classList.remove(
-                "active"
-              )
-          );
-
-
-          button.classList.add(
-            "active"
-          );
-
+        function() {
 
           currentCategory =
-            button.dataset.category ||
-            "ALL";
+            category;
 
+
+          renderCategories();
 
           renderProducts();
 
@@ -501,13 +588,11 @@ function setupCategoryButtons() {
               "finds"
             );
 
+
           if (finds) {
 
-            window.scrollTo({
-              top:
-                finds.offsetTop - 70,
-              behavior:
-                "smooth"
+            finds.scrollIntoView({
+              behavior: "smooth"
             });
 
           }
@@ -515,59 +600,113 @@ function setupCategoryButtons() {
         }
       );
 
+
+      container.appendChild(tile);
+
     }
   );
 
 }
 
 
-/* =========================================================
-   AGENTS
-   ========================================================= */
+// =========================================================
+// CATEGORY FILTER BUTTONS
+// =========================================================
 
-function setupAgentButtons() {
+function renderCategories() {
 
-  const buttons =
-    document.querySelectorAll(
-      ".agentButton"
+  const nav =
+    document.getElementById(
+      "categoryNav"
     );
 
 
-  buttons.forEach(
-    button => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          buttons.forEach(
-            item =>
-              item.classList.remove(
-                "active"
-              )
-          );
+  if (!nav) {
+    return;
+  }
 
 
-          button.classList.add(
-            "active"
-          );
+  nav.innerHTML = "";
 
 
-          currentAgent =
-            button.dataset.agent ||
-            "LITBUY";
+  // ALL
+  const allButton =
+    document.createElement(
+      "button"
+    );
 
 
-          /*
-           * Agent selection is kept
-           * as the website UI.
-           *
-           * Product links remain the
-           * direct source links from
-           * the spreadsheet.
-           */
+  allButton.className =
+    "categoryButton " +
+    (
+      currentCategory === "ALL"
+        ? "active"
+        : ""
+    );
 
-        }
+
+  allButton.textContent =
+    "ALL";
+
+
+  allButton.onclick =
+    function() {
+
+      currentCategory =
+        "ALL";
+
+
+      renderCategories();
+
+      renderProducts();
+
+    };
+
+
+  nav.appendChild(
+    allButton
+  );
+
+
+  // Six categories
+  categories.forEach(
+    category => {
+
+      const button =
+        document.createElement(
+          "button"
+        );
+
+
+      button.className =
+        "categoryButton " +
+        (
+          currentCategory === category
+            ? "active"
+            : ""
+        );
+
+
+      button.textContent =
+        category;
+
+
+      button.onclick =
+        function() {
+
+          currentCategory =
+            category;
+
+
+          renderCategories();
+
+          renderProducts();
+
+        };
+
+
+      nav.appendChild(
+        button
       );
 
     }
@@ -576,24 +715,487 @@ function setupAgentButtons() {
 }
 
 
-/* =========================================================
-   SEARCH
-   ========================================================= */
+// =========================================================
+// RENDER PRODUCTS
+// =========================================================
 
-function setupSearch() {
+function renderProducts() {
 
-  const input =
+  const grid =
+    document.getElementById(
+      "productGrid"
+    );
+
+
+  if (!grid) {
+    return;
+  }
+
+
+  const searchInput =
     document.getElementById(
       "searchInput"
     );
 
 
-  if (!input) return;
+  const heroSearchInput =
+    document.getElementById(
+      "heroSearchInput"
+    );
 
 
-  input.addEventListener(
+  let search = "";
+
+
+  if (searchInput) {
+
+    search =
+      searchInput.value
+        .trim()
+        .toLowerCase();
+
+  }
+
+
+  /*
+   * Hero search is used when the
+   * main search box is empty.
+   */
+
+  if (
+    !search &&
+    heroSearchInput
+  ) {
+
+    search =
+      heroSearchInput.value
+        .trim()
+        .toLowerCase();
+
+  }
+
+
+  grid.innerHTML = "";
+
+
+  const filtered =
+    products.filter(
+      product => {
+
+        const categoryMatch =
+          currentCategory === "ALL" ||
+          product.category ===
+          currentCategory;
+
+
+        const searchMatch =
+          !search ||
+          product.name
+            .toLowerCase()
+            .includes(search);
+
+
+        return (
+          categoryMatch &&
+          searchMatch
+        );
+
+      }
+    );
+
+
+  const empty =
+    document.getElementById(
+      "emptyMessage"
+    );
+
+
+  if (empty) {
+
+    empty.style.display =
+      filtered.length === 0
+        ? "block"
+        : "none";
+
+  }
+
+
+  filtered.forEach(
+    product => {
+
+      const card =
+        document.createElement(
+          "div"
+        );
+
+
+      card.className =
+        "productCard";
+
+
+      // ---------------------------------------------------
+      // IMAGE
+      // ---------------------------------------------------
+
+      const image =
+        document.createElement(
+          "div"
+        );
+
+
+      image.className =
+        "productImage";
+
+
+      if (product.imageUrl) {
+
+        const img =
+          document.createElement(
+            "img"
+          );
+
+
+        img.src =
+          product.imageUrl;
+
+
+        img.alt =
+          product.name;
+
+
+        img.loading =
+          "lazy";
+
+
+        img.decoding =
+          "async";
+
+
+        img.onerror =
+          function() {
+
+            this.style.display =
+              "none";
+
+
+            if (
+              !image.querySelector(
+                ".imageFallback"
+              )
+            ) {
+
+              const fallback =
+                document.createElement(
+                  "span"
+                );
+
+
+              fallback.className =
+                "imageFallback";
+
+
+              fallback.textContent =
+                "IMAGE";
+
+
+              image.appendChild(
+                fallback
+              );
+
+            }
+
+          };
+
+
+        image.appendChild(
+          img
+        );
+
+      } else {
+
+        image.textContent =
+          "IMAGE";
+
+      }
+
+
+      // ---------------------------------------------------
+      // INFO
+      // ---------------------------------------------------
+
+      const info =
+        document.createElement(
+          "div"
+        );
+
+
+      info.className =
+        "productInfo";
+
+
+      // Product name
+      const name =
+        document.createElement(
+          "div"
+        );
+
+
+      name.className =
+        "productName";
+
+
+      name.textContent =
+        product.name;
+
+
+      // Price
+      const price =
+        document.createElement(
+          "div"
+        );
+
+
+      price.className =
+        "productPrice";
+
+
+      if (
+        product.price !== "" &&
+        product.price !== null &&
+        product.price !== undefined
+      ) {
+
+        const priceText =
+          String(product.price);
+
+
+        price.textContent =
+          priceText.startsWith("$")
+            ? priceText
+            : "$" + priceText;
+
+      }
+
+
+      // Product link
+      const link =
+        document.createElement(
+          "a"
+        );
+
+
+      link.className =
+        "viewButton";
+
+
+      link.textContent =
+        "VIEW PRODUCT";
+
+
+      link.href =
+        getProductUrl(
+          product
+        );
+
+
+      link.target =
+        "_blank";
+
+
+      link.rel =
+        "noopener noreferrer";
+
+
+      // Category
+      const category =
+        document.createElement(
+          "div"
+        );
+
+
+      category.className =
+        "productCategory";
+
+
+      category.textContent =
+        product.category;
+
+
+      // Assemble
+      info.appendChild(
+        name
+      );
+
+      info.appendChild(
+        price
+      );
+
+      info.appendChild(
+        link
+      );
+
+      info.appendChild(
+        category
+      );
+
+
+      card.appendChild(
+        image
+      );
+
+      card.appendChild(
+        info
+      );
+
+
+      grid.appendChild(
+        card
+      );
+
+    }
+  );
+
+
+  const status =
+    document.getElementById(
+      "status"
+    );
+
+
+  if (status) {
+
+    if (
+      currentCategory === "ALL"
+    ) {
+
+      status.textContent =
+        filtered.length +
+        " products";
+
+    } else {
+
+      status.textContent =
+        filtered.length +
+        " products · " +
+        currentCategory;
+
+    }
+
+  }
+
+}
+
+
+// =========================================================
+// SYNC AGENT SELECTORS
+// =========================================================
+
+function setAgent(agent) {
+
+  currentAgent =
+    agent;
+
+
+  const mainSelect =
+    document.getElementById(
+      "agentSelect"
+    );
+
+
+  const desktopSelect =
+    document.getElementById(
+      "desktopAgentSelect"
+    );
+
+
+  if (mainSelect) {
+
+    mainSelect.value =
+      agent;
+
+  }
+
+
+  if (desktopSelect) {
+
+    desktopSelect.value =
+      agent;
+
+  }
+
+
+  renderProducts();
+
+}
+
+
+// =========================================================
+// MAIN HEADER AGENT
+// =========================================================
+
+const agentSelect =
+  document.getElementById(
+    "agentSelect"
+  );
+
+
+if (agentSelect) {
+
+  agentSelect.addEventListener(
+    "change",
+    function(event) {
+
+      setAgent(
+        event.target.value
+      );
+
+    }
+  );
+
+}
+
+
+// =========================================================
+// DESKTOP AGENT
+// =========================================================
+
+const desktopAgentSelect =
+  document.getElementById(
+    "desktopAgentSelect"
+  );
+
+
+if (desktopAgentSelect) {
+
+  desktopAgentSelect.addEventListener(
+    "change",
+    function(event) {
+
+      setAgent(
+        event.target.value
+      );
+
+    }
+  );
+
+}
+
+
+// =========================================================
+// SEARCH
+// =========================================================
+
+const searchInput =
+  document.getElementById(
+    "searchInput"
+  );
+
+
+if (searchInput) {
+
+  searchInput.addEventListener(
     "input",
-    () => {
+    function() {
 
       renderProducts();
 
@@ -603,130 +1205,95 @@ function setupSearch() {
 }
 
 
-/* =========================================================
-   HERO SEARCH
-   ========================================================= */
+// =========================================================
+// HERO SEARCH
+// =========================================================
 
-function setupHeroSearch() {
-
-  const input =
-    document.getElementById(
-      "heroSearchInput"
-    );
-
-  const button =
-    document.getElementById(
-      "heroSearchButton"
-    );
+const heroSearchInput =
+  document.getElementById(
+    "heroSearchInput"
+  );
 
 
-  function performSearch() {
+if (heroSearchInput) {
 
-    const mainSearch =
-      document.getElementById(
-        "searchInput"
-      );
+  heroSearchInput.addEventListener(
+    "input",
+    function() {
 
-
-    if (mainSearch && input) {
-
-      mainSearch.value =
-        input.value;
-
-    }
+      const mainSearch =
+        document.getElementById(
+          "searchInput"
+        );
 
 
-    currentCategory =
-      "ALL";
+      if (mainSearch) {
 
-
-    document
-      .querySelectorAll(
-        ".categoryButton"
-      )
-      .forEach(
-        item =>
-          item.classList.toggle(
-            "active",
-            item.dataset.category ===
-              "ALL"
-          )
-      );
-
-
-    renderProducts();
-
-
-    const finds =
-      document.getElementById(
-        "finds"
-      );
-
-
-    if (finds) {
-
-      window.scrollTo({
-        top:
-          finds.offsetTop - 70,
-        behavior:
-          "smooth"
-      });
-
-    }
-
-  }
-
-
-  if (button) {
-
-    button.addEventListener(
-      "click",
-      performSearch
-    );
-
-  }
-
-
-  if (input) {
-
-    input.addEventListener(
-      "keydown",
-      event => {
-
-        if (
-          event.key === "Enter"
-        ) {
-
-          performSearch();
-
-        }
+        mainSearch.value =
+          heroSearchInput.value;
 
       }
-    );
 
-  }
+
+      renderProducts();
+
+    }
+  );
 
 }
 
 
-/* =========================================================
-   REFRESH
-   ========================================================= */
+// =========================================================
+// HERO SEARCH BUTTON
+// =========================================================
 
-function setupRefresh() {
-
-  const button =
-    document.getElementById(
-      "refreshButton"
-    );
+const heroSearchButton =
+  document.getElementById(
+    "heroSearchButton"
+  );
 
 
-  if (!button) return;
+if (heroSearchButton) {
 
-
-  button.addEventListener(
+  heroSearchButton.addEventListener(
     "click",
-    () => {
+    function() {
+
+      const finds =
+        document.getElementById(
+          "finds"
+        );
+
+
+      if (finds) {
+
+        finds.scrollIntoView({
+          behavior: "smooth"
+        });
+
+      }
+
+    }
+  );
+
+}
+
+
+// =========================================================
+// REFRESH
+// =========================================================
+
+const refreshBtn =
+  document.getElementById(
+    "refreshBtn"
+  );
+
+
+if (refreshBtn) {
+
+  refreshBtn.addEventListener(
+    "click",
+    function() {
 
       loadProducts();
 
@@ -736,73 +1303,32 @@ function setupRefresh() {
 }
 
 
-/* =========================================================
-   VIEW ALL
-   ========================================================= */
+// =========================================================
+// MOBILE MENU
+// =========================================================
 
-const viewAllButton =
+const mobileMenuButton =
   document.getElementById(
-    "viewAllButton"
+    "mobileMenuButton"
   );
 
 
-if (viewAllButton) {
-
-  viewAllButton.addEventListener(
-    "click",
-    () => {
-
-      currentCategory =
-        "ALL";
-
-
-      document
-        .querySelectorAll(
-          ".categoryButton"
-        )
-        .forEach(
-          button =>
-            button.classList.toggle(
-              "active",
-              button.dataset.category ===
-                "ALL"
-            )
-        );
-
-
-      renderProducts();
-
-    }
+const mobileNav =
+  document.getElementById(
+    "mobileNav"
   );
 
-}
 
+if (
+  mobileMenuButton &&
+  mobileNav
+) {
 
-/* =========================================================
-   MOBILE MENU
-   ========================================================= */
-
-function setupMobileMenu() {
-
-  const button =
-    document.getElementById(
-      "mobileMenuButton"
-    );
-
-  const nav =
-    document.getElementById(
-      "mobileNav"
-    );
-
-
-  if (!button || !nav) return;
-
-
-  button.addEventListener(
+  mobileMenuButton.addEventListener(
     "click",
-    () => {
+    function() {
 
-      nav.classList.toggle(
+      mobileNav.classList.toggle(
         "open"
       );
 
@@ -810,155 +1336,57 @@ function setupMobileMenu() {
   );
 
 
-  nav
+  mobileNav
     .querySelectorAll("a")
-    .forEach(
-      link => {
+    .forEach(link => {
 
-        link.addEventListener(
-          "click",
-          () => {
+      link.addEventListener(
+        "click",
+        function() {
 
-            nav.classList.remove(
-              "open"
-            );
+          mobileNav.classList.remove(
+            "open"
+          );
 
-          }
-        );
+        }
+      );
 
-      }
-    );
+    });
 
 }
 
 
-/* =========================================================
-   STATUS
-   ========================================================= */
+// =========================================================
+// LOGO → HOME
+// =========================================================
 
-function setStatus(
-  text
-) {
-
-  const status =
-    document.getElementById(
-      "productStatus"
-    );
+const homeLogo =
+  document.getElementById(
+    "homeLogo"
+  );
 
 
-  if (status) {
+if (homeLogo) {
 
-    status.textContent =
-      text;
+  homeLogo.addEventListener(
+    "click",
+    function(event) {
 
-  }
+      event.preventDefault();
 
-}
-
-
-/* =========================================================
-   DEDUPE
-   ========================================================= */
-
-function removeDuplicates(
-  products
-) {
-
-  const seen =
-    new Set();
-
-  const result = [];
-
-
-  products.forEach(
-    product => {
-
-      const key =
-        product.link ||
-        (
-          product.name +
-          "|" +
-          product.price +
-          "|" +
-          product.category
-        );
-
-
-      if (
-        !key ||
-        seen.has(key)
-      ) {
-
-        return;
-
-      }
-
-
-      seen.add(key);
-
-      result.push(product);
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
 
     }
   );
 
-
-  return result;
 }
 
 
-/* =========================================================
-   HTML ESCAPE
-   ========================================================= */
+// =========================================================
+// START
+// =========================================================
 
-function escapeHtml(
-  value
-) {
-
-  return String(value)
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-    .replace(
-      /</g,
-      "&lt;"
-    )
-    .replace(
-      />/g,
-      "&gt;"
-    )
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-    .replace(
-      /'/g,
-      "&#039;"
-    );
-
-}
-
-
-function escapeAttribute(
-  value
-) {
-
-  return String(value)
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-    .replace(
-      /</g,
-      "&lt;"
-    )
-    .replace(
-      />/g,
-      "&gt;"
-    );
-
-}
+loadProducts();
