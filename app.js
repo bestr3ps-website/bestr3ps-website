@@ -35,6 +35,8 @@ function renderCategoryButtons() {
     btn.className = category === currentCategory ? "active" : "";
 
     btn.addEventListener("click", () => {
+      if (currentCategory === category && currentProducts.length > 0) return;
+      
       currentCategory = category;
       visibleCount = PAGE_SIZE;
 
@@ -65,7 +67,7 @@ async function loadCategory(category) {
   }
 
   try {
-    // 2. 按分类向后端精准发包拉取数据
+    // 2. 发起请求只拉取当前选择的分类
     const url =
       API_URL +
       "?category=" +
@@ -209,8 +211,13 @@ function renderProducts() {
     })
     .join("");
 
+  // 渲染 LOAD MORE 按钮
+  const existingLoadMore = document.getElementById("loadMoreBtn");
+  if (existingLoadMore) existingLoadMore.remove();
+
   if (products.length > visibleCount) {
     const loadMore = document.createElement("button");
+    loadMore.id = "loadMoreBtn";
     loadMore.className = "load-more";
     loadMore.textContent = `LOAD MORE (${Math.min(
       PAGE_SIZE,
