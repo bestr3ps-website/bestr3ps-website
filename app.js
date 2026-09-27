@@ -1,6 +1,6 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbxtFiRVCd9Y1MZ6l8-YlmmzRa97RZ6xppFLYoQgTEOBddtlx6wE6q9PnUaCdu3D94BR/exec";
 
-const PAGE_SIZE = 30;
+const PAGE_SIZE = 20; // 每次只加载 20 个，保证秒开！
 
 const CATEGORIES = [
   "SUMMER Pick",
@@ -14,10 +14,9 @@ const CATEGORIES = [
 
 let currentCategory = CATEGORIES[0];
 let currentProducts = [];
-let visibleCount = PAGE_SIZE;
-
-const categoryCache = {};
-let imageObserver = null;
+let currentPage = 1;
+let isLoading = false;
+let hasMore = true;
 
 document.addEventListener("DOMContentLoaded", init);
 
@@ -25,13 +24,9 @@ function init() {
   renderCategoryButtons();
   setupSearch();
   setupRefresh();
-  showLoadingState();
+  setupScrollListener(); // 绑定触底自动加载
 
-  // 加载当前分类
-  loadCategory(currentCategory).then(() => {
-    // 首次加载完毕后，后台静默预加载其他品类，实现切换“零延迟”
-    preloadOtherCategories();
-  });
+  loadCategory(currentCategory, true);
 }
 
 function renderCategoryButtons() {
@@ -46,7 +41,7 @@ function renderCategoryButtons() {
     button.className = category === currentCategory ? "active" : "";
 
     button.addEventListener("click", () => {
-      if (currentCategory === category) return;
+      if (currentCategory === category || isLoading) return;
       currentCategory = category;
 
       document.querySelectorAll("#categoryNav button").forEach(btn => {
@@ -54,68 +49,61 @@ function renderCategoryButtons() {
       });
       button.classList.add("active");
 
-      loadCategory(category);
+      // 切换分类时，重置页码并重新请求
+      loadCategory(category, true);
     });
 
     nav.appendChild(button);
   });
 }
 
-async function fetchCategoryData(category) {
-  const url = `${API_URL}?category=${encodeURIComponent(category)}&t=${Date.now()}`;
-  const response = await fetch(url, { cache: "no-store" });
-  
-  if (!response.ok) throw new Error("HTTP " + response.status);
-  const data = await response.json();
+/* ================================
+   按需加载的核心：分页 Fetch
+================================ */
+async function loadCategory(category, isNewCategory = false) {
+  if (isLoading) return;
+  isLoading = true;
 
-  if (data && Array.isArray(data.products)) {
-    return data.products;
-  } else if (Array.isArray(data)) {
-    return data;
-  } else if (data && Array.isArray(data[category])) {
-    return data[category];
+  if (isNewCategory) {
+    currentPage = 1;
+    currentProducts = [];
+    hasMore = true;
+    showLoadingState();
+  } else {
+    showLoadingMoreIndicator();
   }
-  return [];
-}
-
-async function loadCategory(category) {
-  visibleCount = PAGE_SIZE;
-  currentProducts = [];
-
-  // 如果有缓存直接读缓存
-  if (categoryCache[category]) {
-    currentProducts = categoryCache[category];
-    renderProducts();
-    return;
-  }
-
-  showLoadingState();
 
   try {
-    const products = await fetchCategoryData(category);
-    categoryCache[category] = products;
-    currentProducts = products;
+    // 每次只请求当前页的数据，传 page 和 limit 参数
+    const url = `${API_URL}?category=${encodeURIComponent(category)}&page=${currentPage}&limit=${PAGE_SIZE}&t=${Date.now()}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    
+    const data = await response.json();
+    const newProducts = Array.isArray(data.products) ? data.products : [];
+    hasMore = data.hasMore;
+
+    if (isNewCategory) {
+      currentProducts = newProducts;
+    } else {
+      currentProducts = currentProducts.concat(newProducts);
+    }
+
     renderProducts();
+    currentPage++;
   } catch (error) {
-    console.error("Load products error:", error);
-    showErrorState();
+    console.error("Load error:", error);
+    if (isNewCategory) showErrorState();
+  } finally {
+    isLoading = false;
+    hideLoadingMoreIndicator();
   }
 }
 
-// 后台静默预加载剩余分类
-function preloadOtherCategories() {
-  CATEGORIES.forEach(async (cat) => {
-    if (!categoryCache[cat] && cat !== currentCategory) {
-      try {
-        const products = await fetchCategoryData(cat);
-        categoryCache[cat] = products;
-      } catch (e) {
-        // 静默失败，不打扰用户
-      }
-    }
-  });
-}
-
+/* ================================
+   渲染商品卡片
+================================ */
 function renderProducts() {
   const grid = document.getElementById("productGrid");
   if (!grid) return;
@@ -127,7 +115,7 @@ function renderProducts() {
 
   if (keyword) {
     products = currentProducts.filter(product => {
-      const name = String(product.name || product.title || "").toLowerCase();
+      const name = String(product.name || "").toLowerCase();
       return name.includes(keyword);
     });
   }
@@ -140,32 +128,15 @@ function renderProducts() {
 
   hideEmptyState();
 
-  const visibleProducts = products.slice(0, visibleCount);
-  grid.innerHTML = visibleProducts.map(createProductCard).join("");
-
-  if (products.length > visibleCount) {
-    const loadMore = document.createElement("button");
-    loadMore.type = "button";
-    loadMore.className = "load-more";
-    loadMore.textContent = `LOAD MORE (${Math.min(PAGE_SIZE, products.length - visibleCount)})`;
-
-    loadMore.addEventListener("click", () => {
-      visibleCount += PAGE_SIZE;
-      renderProducts();
-    });
-
-    grid.appendChild(loadMore);
-  }
-
-  setupImageObserver();
-  updateStatus(`${products.length} products`);
+  grid.innerHTML = products.map(createProductCard).join("");
+  updateStatus(`Loaded ${products.length} products`);
 }
 
 function createProductCard(product) {
-  const name = escapeHtml(product.name || product.title || "Product");
+  const name = escapeHtml(product.name || "Product");
   const price = escapeHtml(product.price || "");
-  const image = product.imageUrl || product.image || "";
-  const url = product.sourceUrl || product.url || product.link || "#";
+  const image = product.imageUrl || "";
+  const url = product.sourceUrl || "#";
 
   return `
     <div class="product-card">
@@ -173,7 +144,7 @@ function createProductCard(product) {
         <div class="product-image">
           ${
             image
-              ? `<img class="lazy-image" data-src="${escapeAttribute(image)}" alt="${name}" loading="lazy">`
+              ? `<img src="${escapeAttribute(image)}" alt="${name}" loading="lazy" onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\"image-placeholder\">No Image</div>';">`
               : `<div class="image-placeholder">No Image</div>`
           }
         </div>
@@ -186,40 +157,18 @@ function createProductCard(product) {
   `;
 }
 
-function setupImageObserver() {
-  const images = document.querySelectorAll(".lazy-image");
-
-  if (!("IntersectionObserver" in window)) {
-    images.forEach(loadImage);
-    return;
-  }
-
-  if (imageObserver) imageObserver.disconnect();
-
-  imageObserver = new IntersectionObserver(
-    entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          loadImage(entry.target);
-          imageObserver.unobserve(entry.target);
-        }
-      });
-    },
-    { rootMargin: "300px" }
-  );
-
-  images.forEach(image => imageObserver.observe(image));
-}
-
-function loadImage(img) {
-  const src = img.dataset.src;
-  if (!src) return;
-
-  img.src = src;
-  img.removeAttribute("data-src");
-  img.onerror = () => {
-    img.style.display = "none";
-  };
+/* ================================
+   滚动触底监听（滚动瀑布流加载）
+================================ */
+function setupScrollListener() {
+  window.addEventListener("scroll", () => {
+    // 距离底部不到 400px 时自动触发下一页加载
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 400) {
+      if (!isLoading && hasMore) {
+        loadCategory(currentCategory, false);
+      }
+    }
+  });
 }
 
 function setupSearch() {
@@ -230,7 +179,6 @@ function setupSearch() {
   input.addEventListener("input", () => {
     clearTimeout(timer);
     timer = setTimeout(() => {
-      visibleCount = PAGE_SIZE;
       renderProducts();
     }, 200);
   });
@@ -241,23 +189,39 @@ function setupRefresh() {
   if (!button) return;
 
   button.addEventListener("click", () => {
-    delete categoryCache[currentCategory];
-    loadCategory(currentCategory);
+    loadCategory(currentCategory, true);
   });
 }
 
 function showLoadingState() {
   const grid = document.getElementById("productGrid");
   if (!grid) return;
-  grid.innerHTML = `<div class="loading">Loading products...</div>`;
+  grid.innerHTML = `<div class="loading">⚡ Loading products...</div>`;
   hideEmptyState();
   updateStatus("Loading...");
+}
+
+function showLoadingMoreIndicator() {
+  let indicator = document.getElementById("loadingMore");
+  if (!indicator) {
+    indicator = document.createElement("div");
+    indicator.id = "loadingMore";
+    indicator.className = "loading-more";
+    indicator.innerHTML = "Loading more products...";
+    document.body.appendChild(indicator);
+  }
+  indicator.style.display = "block";
+}
+
+function hideLoadingMoreIndicator() {
+  const indicator = document.getElementById("loadingMore");
+  if (indicator) indicator.style.display = "none";
 }
 
 function showErrorState() {
   const grid = document.getElementById("productGrid");
   if (!grid) return;
-  grid.innerHTML = `<div class="loading">Failed to load products.<br>Please try again.</div>`;
+  grid.innerHTML = `<div class="loading">Failed to load products. Please try again.</div>`;
   updateStatus("Load failed");
 }
 
