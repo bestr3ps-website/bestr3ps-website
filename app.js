@@ -16,20 +16,22 @@ const CATEGORIES = [
 ];
 
 
-let currentCategory = CATEGORIES[0];
+let currentCategory =
+  CATEGORIES[0];
 
 let currentProducts = [];
 
-let visibleCount = PAGE_SIZE;
+let visibleCount =
+  PAGE_SIZE;
 
-const categoryCache = {};
+const cache = {};
 
-let imageObserver = null;
+let observer;
 
 
-/* ================================
-   页面初始化
-================================ */
+/* =========================
+   初始化
+========================= */
 
 document.addEventListener(
   "DOMContentLoaded",
@@ -39,95 +41,114 @@ document.addEventListener(
 
 function init() {
 
-  renderCategoryButtons();
+  renderCategories();
 
   setupSearch();
 
   setupRefresh();
 
-  showLoadingState();
-
-  loadCategory(currentCategory);
+  loadCategory(
+    currentCategory
+  );
 }
 
 
-/* ================================
-   分类按钮
-================================ */
+/* =========================
+   分类
+========================= */
 
-function renderCategoryButtons() {
+function renderCategories() {
 
   const nav =
     document.getElementById(
       "categoryNav"
     );
 
-  if (!nav) {
-    return;
-  }
+  if (!nav) return;
 
   nav.innerHTML = "";
 
-  CATEGORIES.forEach(category => {
+  CATEGORIES.forEach(
+    category => {
 
-    const button =
-      document.createElement("button");
+      const button =
+        document.createElement(
+          "button"
+        );
 
-    button.type = "button";
+      button.textContent =
+        category;
 
-    button.textContent = category;
-
-    button.className =
-      category === currentCategory
-        ? "active"
-        : "";
-
-    button.addEventListener(
-      "click",
-      () => {
-
-        currentCategory = category;
-
-        document
-          .querySelectorAll(
-            "#categoryNav button"
-          )
-          .forEach(btn => {
-            btn.classList.remove("active");
-          });
-
-        button.classList.add("active");
-
-        loadCategory(category);
+      if (
+        category ===
+        currentCategory
+      ) {
+        button.classList.add(
+          "active"
+        );
       }
-    );
 
-    nav.appendChild(button);
-  });
+      button.onclick =
+        () => {
+
+          currentCategory =
+            category;
+
+          document
+            .querySelectorAll(
+              "#categoryNav button"
+            )
+            .forEach(
+              b =>
+                b.classList.remove(
+                  "active"
+                )
+            );
+
+          button.classList.add(
+            "active"
+          );
+
+          loadCategory(
+            category
+          );
+        };
+
+      nav.appendChild(
+        button
+      );
+    }
+  );
 }
 
 
-/* ================================
+/* =========================
    加载分类
-================================ */
+========================= */
 
-async function loadCategory(category) {
+async function loadCategory(
+  category
+) {
 
-  visibleCount = PAGE_SIZE;
+  visibleCount =
+    PAGE_SIZE;
 
   currentProducts = [];
 
-  showLoadingState();
+  showLoading();
+
 
   /*
-    如果已经加载过，
-    直接使用缓存
+    已经加载过：
+    直接显示
   */
 
-  if (categoryCache[category]) {
+  if (
+    cache[category]
+  ) {
 
     currentProducts =
-      categoryCache[category];
+      cache[category];
 
     renderProducts();
 
@@ -140,22 +161,22 @@ async function loadCategory(category) {
     const url =
       API_URL +
       "?category=" +
-      encodeURIComponent(category) +
-      "&t=" +
-      Date.now();
+      encodeURIComponent(
+        category
+      );
 
 
     const response =
-      await fetch(url, {
-        method: "GET",
-        cache: "no-store"
-      });
+      await fetch(
+        url,
+        {
+          cache: "default"
+        }
+      );
 
 
     if (!response.ok) {
-
       throw new Error(
-        "HTTP " +
         response.status
       );
     }
@@ -165,53 +186,15 @@ async function loadCategory(category) {
       await response.json();
 
 
-    /*
-      新版 Apps Script
-    */
-
-    if (
-      data &&
-      Array.isArray(data.products)
-    ) {
-
-      currentProducts =
-        data.products;
-
-    }
-
-    /*
-      兼容旧格式
-    */
-
-    else if (
-      Array.isArray(data)
-    ) {
-
-      currentProducts = data;
-
-    }
-
-    else if (
-      data &&
-      Array.isArray(data[category])
-    ) {
-
-      currentProducts =
-        data[category];
-
-    }
-
-    else {
-
-      currentProducts = [];
-    }
+    currentProducts =
+      Array.isArray(
+        data.products
+      )
+        ? data.products
+        : [];
 
 
-    /*
-      缓存
-    */
-
-    categoryCache[category] =
+    cache[category] =
       currentProducts;
 
 
@@ -219,19 +202,16 @@ async function loadCategory(category) {
 
   } catch (error) {
 
-    console.error(
-      "Load products error:",
-      error
-    );
+    console.error(error);
 
-    showErrorState();
+    showError();
   }
 }
 
 
-/* ================================
-   显示商品
-================================ */
+/* =========================
+   商品
+========================= */
 
 function renderProducts() {
 
@@ -240,22 +220,20 @@ function renderProducts() {
       "productGrid"
     );
 
-  if (!grid) {
-    return;
-  }
+  if (!grid) return;
 
 
-  const searchInput =
+  const input =
     document.getElementById(
       "searchInput"
     );
 
 
   const keyword =
-    searchInput
-      ? searchInput.value
-        .trim()
-        .toLowerCase()
+    input
+      ? input.value
+          .trim()
+          .toLowerCase()
       : "";
 
 
@@ -263,49 +241,36 @@ function renderProducts() {
     currentProducts;
 
 
-  /*
-    搜索
-  */
-
   if (keyword) {
 
     products =
-      currentProducts.filter(
-        product => {
-
-          const name =
-            String(
-              product.name ||
-              product.title ||
-              ""
-            ).toLowerCase();
-
-          return name.includes(
-            keyword
-          );
-        }
+      products.filter(
+        p =>
+          String(
+            p.name || ""
+          )
+            .toLowerCase()
+            .includes(
+              keyword
+            )
       );
   }
 
-
-  /*
-    没有商品
-  */
 
   if (!products.length) {
 
     grid.innerHTML = "";
 
-    showEmptyState();
+    showEmpty();
 
     return;
   }
 
 
-  hideEmptyState();
+  hideEmpty();
 
 
-  const visibleProducts =
+  const visible =
     products.slice(
       0,
       visibleCount
@@ -313,95 +278,80 @@ function renderProducts() {
 
 
   grid.innerHTML =
-    visibleProducts
-      .map(createProductCard)
+    visible
+      .map(
+        createCard
+      )
       .join("");
 
-
-  /*
-    Load More
-  */
 
   if (
     products.length >
     visibleCount
   ) {
 
-    const loadMore =
+    const button =
       document.createElement(
         "button"
       );
 
-    loadMore.type = "button";
-
-    loadMore.className =
+    button.className =
       "load-more";
 
-    loadMore.textContent =
-      `LOAD MORE (${Math.min(
-        PAGE_SIZE,
-        products.length - visibleCount
-      )})`;
+    button.textContent =
+      "LOAD MORE";
 
 
-    loadMore.addEventListener(
-      "click",
+    button.onclick =
       () => {
 
         visibleCount +=
           PAGE_SIZE;
 
         renderProducts();
-      }
-    );
+      };
 
 
     grid.appendChild(
-      loadMore
+      button
     );
   }
 
 
-  setupImageObserver();
-
+  lazyLoadImages();
 
   updateStatus(
-    `${products.length} products`
+    products.length +
+      " products"
   );
 }
 
 
-/* ================================
+/* =========================
    商品卡片
-================================ */
+========================= */
 
-function createProductCard(product) {
+function createCard(
+  product
+) {
 
   const name =
-    escapeHtml(
+    escape(
       product.name ||
-      product.title ||
       "Product"
     );
 
-
   const price =
-    escapeHtml(
-      product.price ||
-      ""
+    escape(
+      product.price || ""
     );
-
 
   const image =
     product.imageUrl ||
-    product.image ||
     "";
-
 
   const url =
     product.sourceUrl ||
-    product.url ||
-    product.link ||
     "#";
 
 
@@ -409,7 +359,7 @@ function createProductCard(product) {
     <div class="product-card">
 
       <a
-        href="${escapeAttribute(url)}"
+        href="${escape(url)}"
         target="_blank"
         rel="noopener noreferrer"
         class="product-link"
@@ -422,9 +372,10 @@ function createProductCard(product) {
               ? `
                 <img
                   class="lazy-image"
-                  data-src="${escapeAttribute(image)}"
+                  data-src="${escape(
+                    image
+                  )}"
                   alt="${name}"
-                  loading="lazy"
                 >
               `
               : `
@@ -435,7 +386,6 @@ function createProductCard(product) {
           }
 
         </div>
-
 
         <div class="product-info">
 
@@ -462,21 +412,17 @@ function createProductCard(product) {
 }
 
 
-/* ================================
+/* =========================
    图片懒加载
-================================ */
+========================= */
 
-function setupImageObserver() {
+function lazyLoadImages() {
 
   const images =
     document.querySelectorAll(
       ".lazy-image"
     );
 
-
-  /*
-    浏览器不支持时直接加载
-  */
 
   if (
     !("IntersectionObserver" in window)
@@ -490,45 +436,45 @@ function setupImageObserver() {
   }
 
 
-  if (imageObserver) {
-
-    imageObserver.disconnect();
+  if (observer) {
+    observer.disconnect();
   }
 
 
-  imageObserver =
+  observer =
     new IntersectionObserver(
       entries => {
 
-        entries.forEach(entry => {
+        entries.forEach(
+          entry => {
 
-          if (
-            entry.isIntersecting
-          ) {
+            if (
+              entry.isIntersecting
+            ) {
 
-            loadImage(
-              entry.target
-            );
+              loadImage(
+                entry.target
+              );
 
-            imageObserver.unobserve(
-              entry.target
-            );
+              observer.unobserve(
+                entry.target
+              );
+            }
           }
-        });
+        );
 
       },
       {
-        rootMargin: "300px"
+        rootMargin:
+          "600px"
       }
     );
 
 
-  images.forEach(image => {
-
-    imageObserver.observe(
-      image
-    );
-  });
+  images.forEach(
+    img =>
+      observer.observe(img)
+  );
 }
 
 
@@ -537,29 +483,24 @@ function loadImage(img) {
   const src =
     img.dataset.src;
 
-  if (!src) {
-    return;
-  }
-
+  if (!src) return;
 
   img.src = src;
 
-  img.removeAttribute(
-    "data-src"
-  );
+  delete img.dataset.src;
 
+  img.onerror =
+    () => {
 
-  img.onerror = () => {
-
-    img.style.display =
-      "none";
-  };
+      img.style.display =
+        "none";
+    };
 }
 
 
-/* ================================
+/* =========================
    搜索
-================================ */
+========================= */
 
 function setupSearch() {
 
@@ -568,13 +509,10 @@ function setupSearch() {
       "searchInput"
     );
 
-
-  if (!input) {
-    return;
-  }
+  if (!input) return;
 
 
-  let timer = null;
+  let timer;
 
 
   input.addEventListener(
@@ -583,26 +521,19 @@ function setupSearch() {
 
       clearTimeout(timer);
 
-
-      timer = setTimeout(
-        () => {
-
-          visibleCount =
-            PAGE_SIZE;
-
-          renderProducts();
-
-        },
-        200
-      );
+      timer =
+        setTimeout(
+          renderProducts,
+          150
+        );
     }
   );
 }
 
 
-/* ================================
+/* =========================
    刷新
-================================ */
+========================= */
 
 function setupRefresh() {
 
@@ -611,54 +542,42 @@ function setupRefresh() {
       "refreshBtn"
     );
 
-
-  if (!button) {
-    return;
-  }
+  if (!button) return;
 
 
-  button.addEventListener(
-    "click",
+  button.onclick =
     () => {
 
-      delete categoryCache[
+      delete cache[
         currentCategory
       ];
 
       loadCategory(
         currentCategory
       );
-    }
-  );
+    };
 }
 
 
-/* ================================
-   Loading
-================================ */
+/* =========================
+   状态
+========================= */
 
-function showLoadingState() {
+function showLoading() {
 
   const grid =
     document.getElementById(
       "productGrid"
     );
 
+  if (!grid) return;
 
-  if (!grid) {
-    return;
-  }
-
-
-  grid.innerHTML = `
-    <div class="loading">
-      Loading products...
-    </div>
-  `;
-
-
-  hideEmptyState();
-
+  grid.innerHTML =
+    `
+      <div class="loading">
+        Loading products...
+      </div>
+    `;
 
   updateStatus(
     "Loading..."
@@ -666,31 +585,21 @@ function showLoadingState() {
 }
 
 
-/* ================================
-   Error
-================================ */
-
-function showErrorState() {
+function showError() {
 
   const grid =
     document.getElementById(
       "productGrid"
     );
 
+  if (!grid) return;
 
-  if (!grid) {
-    return;
-  }
-
-
-  grid.innerHTML = `
-    <div class="loading">
-      Failed to load products.
-      <br>
-      Please try again.
-    </div>
-  `;
-
+  grid.innerHTML =
+    `
+      <div class="loading">
+        Failed to load products.
+      </div>
+    `;
 
   updateStatus(
     "Load failed"
@@ -698,17 +607,12 @@ function showErrorState() {
 }
 
 
-/* ================================
-   Empty
-================================ */
-
-function showEmptyState() {
+function showEmpty() {
 
   const empty =
     document.getElementById(
       "emptyMessage"
     );
-
 
   if (empty) {
 
@@ -716,20 +620,18 @@ function showEmptyState() {
       "block";
   }
 
-
   updateStatus(
     "0 products"
   );
 }
 
 
-function hideEmptyState() {
+function hideEmpty() {
 
   const empty =
     document.getElementById(
       "emptyMessage"
     );
-
 
   if (empty) {
 
@@ -739,17 +641,14 @@ function hideEmptyState() {
 }
 
 
-/* ================================
-   状态
-================================ */
-
-function updateStatus(text) {
+function updateStatus(
+  text
+) {
 
   const status =
     document.getElementById(
       "status"
     );
-
 
   if (status) {
 
@@ -759,11 +658,11 @@ function updateStatus(text) {
 }
 
 
-/* ================================
-   HTML 安全处理
-================================ */
+/* =========================
+   安全
+========================= */
 
-function escapeHtml(value) {
+function escape(value) {
 
   return String(value)
     .replace(
@@ -786,10 +685,4 @@ function escapeHtml(value) {
       /'/g,
       "&#039;"
     );
-}
-
-
-function escapeAttribute(value) {
-
-  return escapeHtml(value);
 }
