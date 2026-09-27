@@ -24,9 +24,9 @@ let currentProducts = [];
 let visibleCount =
   PAGE_SIZE;
 
-const cache = {};
+const categoryCache = {};
 
-let observer;
+let imageObserver = null;
 
 
 /* =========================
@@ -66,7 +66,9 @@ function renderCategories() {
 
   if (!nav) return;
 
+
   nav.innerHTML = "";
+
 
   CATEGORIES.forEach(
     category => {
@@ -76,23 +78,38 @@ function renderCategories() {
           "button"
         );
 
+
+      button.type = "button";
+
       button.textContent =
         category;
+
+
+      /*
+        保持原来的 CSS
+      */
+
+      button.className =
+        "category-button";
+
 
       if (
         category ===
         currentCategory
       ) {
+
         button.classList.add(
           "active"
         );
       }
 
+
       button.onclick =
-        () => {
+        function () {
 
           currentCategory =
             category;
+
 
           document
             .querySelectorAll(
@@ -105,14 +122,17 @@ function renderCategories() {
                 )
             );
 
+
           button.classList.add(
             "active"
           );
+
 
           loadCategory(
             category
           );
         };
+
 
       nav.appendChild(
         button
@@ -133,27 +153,29 @@ async function loadCategory(
   visibleCount =
     PAGE_SIZE;
 
-  currentProducts = [];
-
-  showLoading();
-
 
   /*
-    已经加载过：
-    直接显示
+    有缓存直接显示
   */
 
   if (
-    cache[category]
+    categoryCache[
+      category
+    ]
   ) {
 
     currentProducts =
-      cache[category];
+      categoryCache[
+        category
+      ];
 
     renderProducts();
 
     return;
   }
+
+
+  showLoading();
 
 
   try {
@@ -163,20 +185,23 @@ async function loadCategory(
       "?category=" +
       encodeURIComponent(
         category
-      );
+      ) +
+      "&v=3";
 
 
     const response =
       await fetch(
         url,
         {
-          cache: "default"
+          cache: "no-store"
         }
       );
 
 
     if (!response.ok) {
+
       throw new Error(
+        "HTTP " +
         response.status
       );
     }
@@ -186,23 +211,44 @@ async function loadCategory(
       await response.json();
 
 
-    currentProducts =
+    if (
+      data &&
       Array.isArray(
         data.products
       )
-        ? data.products
-        : [];
+    ) {
+
+      currentProducts =
+        data.products;
+
+    } else {
+
+      currentProducts = [];
+    }
 
 
-    cache[category] =
-      currentProducts;
+    /*
+      只有有商品才缓存
+    */
+
+    if (
+      currentProducts.length
+    ) {
+
+      categoryCache[
+        category
+      ] = currentProducts;
+    }
 
 
     renderProducts();
 
+
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      error
+    );
 
     showError();
   }
@@ -220,18 +266,19 @@ function renderProducts() {
       "productGrid"
     );
 
+
   if (!grid) return;
 
 
-  const input =
+  const search =
     document.getElementById(
       "searchInput"
     );
 
 
   const keyword =
-    input
-      ? input.value
+    search
+      ? search.value
           .trim()
           .toLowerCase()
       : "";
@@ -245,9 +292,9 @@ function renderProducts() {
 
     products =
       products.filter(
-        p =>
+        product =>
           String(
-            p.name || ""
+            product.name || ""
           )
             .toLowerCase()
             .includes(
@@ -280,7 +327,7 @@ function renderProducts() {
   grid.innerHTML =
     visible
       .map(
-        createCard
+        createProductCard
       )
       .join("");
 
@@ -290,20 +337,26 @@ function renderProducts() {
     visibleCount
   ) {
 
-    const button =
+    const loadMore =
       document.createElement(
         "button"
       );
 
-    button.className =
+
+    loadMore.type =
+      "button";
+
+
+    loadMore.className =
       "load-more";
 
-    button.textContent =
+
+    loadMore.textContent =
       "LOAD MORE";
 
 
-    button.onclick =
-      () => {
+    loadMore.onclick =
+      function () {
 
         visibleCount +=
           PAGE_SIZE;
@@ -313,12 +366,13 @@ function renderProducts() {
 
 
     grid.appendChild(
-      button
+      loadMore
     );
   }
 
 
-  lazyLoadImages();
+  setupImageObserver();
+
 
   updateStatus(
     products.length +
@@ -331,24 +385,28 @@ function renderProducts() {
    商品卡片
 ========================= */
 
-function createCard(
+function createProductCard(
   product
 ) {
 
   const name =
-    escape(
+    escapeHtml(
       product.name ||
       "Product"
     );
 
+
   const price =
-    escape(
-      product.price || ""
+    escapeHtml(
+      product.price ||
+      ""
     );
+
 
   const image =
     product.imageUrl ||
     "";
+
 
   const url =
     product.sourceUrl ||
@@ -359,7 +417,7 @@ function createCard(
     <div class="product-card">
 
       <a
-        href="${escape(url)}"
+        href="${escapeHtml(url)}"
         target="_blank"
         rel="noopener noreferrer"
         class="product-link"
@@ -372,7 +430,7 @@ function createCard(
               ? `
                 <img
                   class="lazy-image"
-                  data-src="${escape(
+                  data-src="${escapeHtml(
                     image
                   )}"
                   alt="${name}"
@@ -386,6 +444,7 @@ function createCard(
           }
 
         </div>
+
 
         <div class="product-info">
 
@@ -416,7 +475,7 @@ function createCard(
    图片懒加载
 ========================= */
 
-function lazyLoadImages() {
+function setupImageObserver() {
 
   const images =
     document.querySelectorAll(
@@ -436,17 +495,18 @@ function lazyLoadImages() {
   }
 
 
-  if (observer) {
-    observer.disconnect();
+  if (imageObserver) {
+
+    imageObserver.disconnect();
   }
 
 
-  observer =
+  imageObserver =
     new IntersectionObserver(
-      entries => {
+      function (entries) {
 
         entries.forEach(
-          entry => {
+          function (entry) {
 
             if (
               entry.isIntersecting
@@ -456,7 +516,8 @@ function lazyLoadImages() {
                 entry.target
               );
 
-              observer.unobserve(
+
+              imageObserver.unobserve(
                 entry.target
               );
             }
@@ -466,14 +527,18 @@ function lazyLoadImages() {
       },
       {
         rootMargin:
-          "600px"
+          "500px"
       }
     );
 
 
   images.forEach(
-    img =>
-      observer.observe(img)
+    function (image) {
+
+      imageObserver.observe(
+        image
+      );
+    }
   );
 }
 
@@ -483,14 +548,20 @@ function loadImage(img) {
   const src =
     img.dataset.src;
 
+
   if (!src) return;
+
 
   img.src = src;
 
-  delete img.dataset.src;
+
+  img.removeAttribute(
+    "data-src"
+  );
+
 
   img.onerror =
-    () => {
+    function () {
 
       img.style.display =
         "none";
@@ -509,6 +580,7 @@ function setupSearch() {
       "searchInput"
     );
 
+
   if (!input) return;
 
 
@@ -517,13 +589,21 @@ function setupSearch() {
 
   input.addEventListener(
     "input",
-    () => {
+    function () {
 
       clearTimeout(timer);
 
+
       timer =
         setTimeout(
-          renderProducts,
+          function () {
+
+            visibleCount =
+              PAGE_SIZE;
+
+            renderProducts();
+
+          },
           150
         );
     }
@@ -542,15 +622,17 @@ function setupRefresh() {
       "refreshBtn"
     );
 
+
   if (!button) return;
 
 
   button.onclick =
-    () => {
+    function () {
 
-      delete cache[
+      delete categoryCache[
         currentCategory
       ];
+
 
       loadCategory(
         currentCategory
@@ -570,14 +652,19 @@ function showLoading() {
       "productGrid"
     );
 
+
   if (!grid) return;
 
-  grid.innerHTML =
-    `
-      <div class="loading">
-        Loading products...
-      </div>
-    `;
+
+  grid.innerHTML = `
+    <div class="loading">
+      Loading products...
+    </div>
+  `;
+
+
+  hideEmpty();
+
 
   updateStatus(
     "Loading..."
@@ -592,14 +679,16 @@ function showError() {
       "productGrid"
     );
 
+
   if (!grid) return;
 
-  grid.innerHTML =
-    `
-      <div class="loading">
-        Failed to load products.
-      </div>
-    `;
+
+  grid.innerHTML = `
+    <div class="loading">
+      Failed to load products.
+    </div>
+  `;
+
 
   updateStatus(
     "Load failed"
@@ -614,11 +703,13 @@ function showEmpty() {
       "emptyMessage"
     );
 
+
   if (empty) {
 
     empty.style.display =
       "block";
   }
+
 
   updateStatus(
     "0 products"
@@ -632,6 +723,7 @@ function hideEmpty() {
     document.getElementById(
       "emptyMessage"
     );
+
 
   if (empty) {
 
@@ -650,6 +742,7 @@ function updateStatus(
       "status"
     );
 
+
   if (status) {
 
     status.textContent =
@@ -662,7 +755,9 @@ function updateStatus(
    安全
 ========================= */
 
-function escape(value) {
+function escapeHtml(
+  value
+) {
 
   return String(value)
     .replace(
