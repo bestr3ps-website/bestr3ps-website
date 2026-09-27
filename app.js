@@ -1,9 +1,9 @@
-const API_URL =
-  "https://script.google.com/macros/s/AKfycbxtFiRVCd9Y1MZ6l8-YlmmzRa97RZ6xppFLYoQgTEOBddtlx6wE6q9PnUaCdu3D94BR/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxtFiRVCd9Y1MZ6l8-YlmmzRa97RZ6xppFLYoQgTEOBddtlx6wE6q9PnUaCdu3D94BR/exec";
 
 const PAGE_SIZE = 30;
 
 const CATEGORIES = [
+  "SUMMER Pick",
   "SNEAKERS",
   "T-SHIRTS/SHORTS",
   "HOODIE/PANTS",
@@ -15,12 +15,23 @@ const CATEGORIES = [
 let currentCategory = CATEGORIES[0];
 let currentProducts = [];
 let visibleCount = PAGE_SIZE;
+
 const categoryCache = {};
+let imageObserver = null;
+
+document.addEventListener("DOMContentLoaded", init);
 
 function init() {
   renderCategoryButtons();
+  setupSearch();
+  setupRefresh();
   showLoadingState();
-  loadCategory(currentCategory);
+
+  // 加载当前分类
+  loadCategory(currentCategory).then(() => {
+    // 首次加载完毕后，后台静默预加载其他品类，实现切换“零延迟”
+    preloadOtherCategories();
+  });
 }
 
 function renderCategoryButtons() {
@@ -28,74 +39,62 @@ function renderCategoryButtons() {
   if (!nav) return;
 
   nav.innerHTML = "";
-
   CATEGORIES.forEach(category => {
-    const btn = document.createElement("button");
-    btn.textContent = category;
-    btn.className = category === currentCategory ? "active" : "";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = category;
+    button.className = category === currentCategory ? "active" : "";
 
-    btn.addEventListener("click", () => {
-      if (currentCategory === category && currentProducts.length > 0) return;
-      
+    button.addEventListener("click", () => {
+      if (currentCategory === category) return;
       currentCategory = category;
-      visibleCount = PAGE_SIZE;
 
-      document
-        .querySelectorAll("#categoryNav button")
-        .forEach(b => b.classList.remove("active"));
-
-      btn.classList.add("active");
+      document.querySelectorAll("#categoryNav button").forEach(btn => {
+        btn.classList.remove("active");
+      });
+      button.classList.add("active");
 
       loadCategory(category);
     });
 
-    nav.appendChild(btn);
+    nav.appendChild(button);
   });
 }
 
+async function fetchCategoryData(category) {
+  const url = `${API_URL}?category=${encodeURIComponent(category)}&t=${Date.now()}`;
+  const response = await fetch(url, { cache: "no-store" });
+  
+  if (!response.ok) throw new Error("HTTP " + response.status);
+  const data = await response.json();
+
+  if (data && Array.isArray(data.products)) {
+    return data.products;
+  } else if (Array.isArray(data)) {
+    return data;
+  } else if (data && Array.isArray(data[category])) {
+    return data[category];
+  }
+  return [];
+}
+
 async function loadCategory(category) {
-  currentProducts = [];
   visibleCount = PAGE_SIZE;
+  currentProducts = [];
 
-  showLoadingState();
-
-  // 1. 优先使用前端内存缓存
+  // 如果有缓存直接读缓存
   if (categoryCache[category]) {
     currentProducts = categoryCache[category];
     renderProducts();
     return;
   }
 
+  showLoadingState();
+
   try {
-    // 2. 发起请求只拉取当前选择的分类
-    const url =
-      API_URL +
-      "?category=" +
-      encodeURIComponent(category);
-
-    const response = await fetch(url, {
-      method: "GET"
-    });
-
-    if (!response.ok) {
-      throw new Error("HTTP " + response.status);
-    }
-
-    const data = await response.json();
-
-    let products = [];
-
-    if (Array.isArray(data)) {
-      products = data;
-    } else if (data && Array.isArray(data.products)) {
-      products = data.products;
-    } else if (data && Array.isArray(data[category])) {
-      products = data[category];
-    }
-
-    currentProducts = products;
+    const products = await fetchCategoryData(category);
     categoryCache[category] = products;
-
+    currentProducts = products;
     renderProducts();
   } catch (error) {
     console.error("Load products error:", error);
@@ -103,26 +102,32 @@ async function loadCategory(category) {
   }
 }
 
+// 后台静默预加载剩余分类
+function preloadOtherCategories() {
+  CATEGORIES.forEach(async (cat) => {
+    if (!categoryCache[cat] && cat !== currentCategory) {
+      try {
+        const products = await fetchCategoryData(cat);
+        categoryCache[cat] = products;
+      } catch (e) {
+        // 静默失败，不打扰用户
+      }
+    }
+  });
+}
+
 function renderProducts() {
   const grid = document.getElementById("productGrid");
   if (!grid) return;
 
   const searchInput = document.getElementById("searchInput");
-  const keyword = searchInput
-    ? searchInput.value.trim().toLowerCase()
-    : "";
+  const keyword = searchInput ? searchInput.value.trim().toLowerCase() : "";
 
   let products = currentProducts;
 
   if (keyword) {
     products = currentProducts.filter(product => {
-      const name = String(
-        product.name ||
-        product.title ||
-        product.product ||
-        ""
-      ).toLowerCase();
-
+      const name = String(product.name || product.title || "").toLowerCase();
       return name.includes(keyword);
     });
   }
@@ -136,93 +141,13 @@ function renderProducts() {
   hideEmptyState();
 
   const visibleProducts = products.slice(0, visibleCount);
-
-  grid.innerHTML = visibleProducts
-    .map(product => {
-      const name = escapeHtml(
-        product.name ||
-        product.title ||
-        product.product ||
-        "Product"
-      );
-
-      const price = escapeHtml(
-        product.price ||
-        product.usd ||
-        ""
-      );
-
-      const url =
-        product.sourceUrl ||
-        product.url ||
-        product.link ||
-        "#";
-
-      const image =
-        product.imageUrl ||
-        product.image ||
-        "";
-
-      return `
-        <div class="product-card">
-          <a
-            href="${escapeAttribute(url)}"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="product-link"
-          >
-            <div class="product-image">
-              ${
-                image
-                  ? `
-                    <img
-                      class="lazy-image"
-                      data-src="${escapeAttribute(image)}"
-                      alt="${name}"
-                      loading="lazy"
-                    >
-                  `
-                  : `
-                    <div class="image-placeholder">
-                      No Image
-                    </div>
-                  `
-              }
-            </div>
-
-            <div class="product-info">
-              <div class="product-name">
-                ${name}
-              </div>
-
-              ${
-                price
-                  ? `
-                    <div class="product-price">
-                      ${price}
-                    </div>
-                  `
-                  : ""
-              }
-            </div>
-          </a>
-        </div>
-      `;
-    })
-    .join("");
-
-  // 渲染 LOAD MORE 按钮
-  const existingLoadMore = document.getElementById("loadMoreBtn");
-  if (existingLoadMore) existingLoadMore.remove();
+  grid.innerHTML = visibleProducts.map(createProductCard).join("");
 
   if (products.length > visibleCount) {
     const loadMore = document.createElement("button");
-    loadMore.id = "loadMoreBtn";
+    loadMore.type = "button";
     loadMore.className = "load-more";
-    loadMore.textContent = `LOAD MORE (${Math.min(
-      PAGE_SIZE,
-      products.length - visibleCount
-    )})`;
+    loadMore.textContent = `LOAD MORE (${Math.min(PAGE_SIZE, products.length - visibleCount)})`;
 
     loadMore.addEventListener("click", () => {
       visibleCount += PAGE_SIZE;
@@ -233,8 +158,32 @@ function renderProducts() {
   }
 
   setupImageObserver();
-
   updateStatus(`${products.length} products`);
+}
+
+function createProductCard(product) {
+  const name = escapeHtml(product.name || product.title || "Product");
+  const price = escapeHtml(product.price || "");
+  const image = product.imageUrl || product.image || "";
+  const url = product.sourceUrl || product.url || product.link || "#";
+
+  return `
+    <div class="product-card">
+      <a href="${escapeAttribute(url)}" target="_blank" rel="noopener noreferrer" class="product-link">
+        <div class="product-image">
+          ${
+            image
+              ? `<img class="lazy-image" data-src="${escapeAttribute(image)}" alt="${name}" loading="lazy">`
+              : `<div class="image-placeholder">No Image</div>`
+          }
+        </div>
+        <div class="product-info">
+          <div class="product-name">${name}</div>
+          ${price ? `<div class="product-price">${price}</div>` : ""}
+        </div>
+      </a>
+    </div>
+  `;
 }
 
 function setupImageObserver() {
@@ -245,27 +194,21 @@ function setupImageObserver() {
     return;
   }
 
-  if (window._imageObserver) {
-    window._imageObserver.disconnect();
-  }
+  if (imageObserver) imageObserver.disconnect();
 
-  window._imageObserver = new IntersectionObserver(
+  imageObserver = new IntersectionObserver(
     entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           loadImage(entry.target);
-          window._imageObserver.unobserve(entry.target);
+          imageObserver.unobserve(entry.target);
         }
       });
     },
-    {
-      rootMargin: "300px"
-    }
+    { rootMargin: "300px" }
   );
 
-  images.forEach(image => {
-    window._imageObserver.observe(image);
-  });
+  images.forEach(image => imageObserver.observe(image));
 }
 
 function loadImage(img) {
@@ -274,7 +217,6 @@ function loadImage(img) {
 
   img.src = src;
   img.removeAttribute("data-src");
-
   img.onerror = () => {
     img.style.display = "none";
   };
@@ -285,10 +227,8 @@ function setupSearch() {
   if (!input) return;
 
   let timer = null;
-
   input.addEventListener("input", () => {
     clearTimeout(timer);
-
     timer = setTimeout(() => {
       visibleCount = PAGE_SIZE;
       renderProducts();
@@ -296,16 +236,20 @@ function setupSearch() {
   });
 }
 
+function setupRefresh() {
+  const button = document.getElementById("refreshBtn");
+  if (!button) return;
+
+  button.addEventListener("click", () => {
+    delete categoryCache[currentCategory];
+    loadCategory(currentCategory);
+  });
+}
+
 function showLoadingState() {
   const grid = document.getElementById("productGrid");
   if (!grid) return;
-
-  grid.innerHTML = `
-    <div class="loading">
-      Loading products...
-    </div>
-  `;
-
+  grid.innerHTML = `<div class="loading">Loading products...</div>`;
   hideEmptyState();
   updateStatus("Loading...");
 }
@@ -313,15 +257,7 @@ function showLoadingState() {
 function showErrorState() {
   const grid = document.getElementById("productGrid");
   if (!grid) return;
-
-  grid.innerHTML = `
-    <div class="loading">
-      Failed to load products.
-      <br>
-      Please try again.
-    </div>
-  `;
-
+  grid.innerHTML = `<div class="loading">Failed to load products.<br>Please try again.</div>`;
   updateStatus("Load failed");
 }
 
@@ -353,8 +289,3 @@ function escapeHtml(value) {
 function escapeAttribute(value) {
   return escapeHtml(value);
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-  setupSearch();
-  init();
-});
