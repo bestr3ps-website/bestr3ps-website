@@ -10,6 +10,11 @@
     content="width=device-width, initial-scale=1.0"
   >
 
+  <meta
+    name="description"
+    content="BESTR3PS - Find the products you are looking for."
+  >
+
   <title>BESTR3PS</title>
 
   <link
@@ -22,92 +27,270 @@
 
 <body>
 
-  <header class="header">
 
-    <div class="logo">
-      BESTR3PS
+  <!-- =====================================================
+       HEADER
+       ===================================================== -->
+
+  <header class="site-header">
+
+    <div class="header-inner">
+
+
+      <!-- LOGO -->
+
+      <a
+        class="logo"
+        href="#"
+      >
+        BESTR3PS
+      </a>
+
+
+      <!-- SEARCH -->
+
+      <div class="header-search">
+
+        <input
+          id="searchInput"
+          type="search"
+          autocomplete="off"
+          placeholder="Search products or brands..."
+        >
+
+        <button
+          id="searchButton"
+          type="button"
+        >
+          SEARCH
+        </button>
+
+      </div>
+
+
+      <!-- AGENT -->
+
+      <select
+        id="agentSelect"
+        class="agent-select"
+        aria-label="Agent"
+      >
+
+        <option value="litbuy">
+          LITBUY
+        </option>
+
+        <option value="oopbuy">
+          OOPBUY
+        </option>
+
+        <option value="kakobuy">
+          KAKOBUY
+        </option>
+
+        <option value="hipobuy">
+          HIPOBUY
+        </option>
+
+        <option value="lovegobuy">
+          LOVEGOBUY
+        </option>
+
+        <option value="rizzitgo">
+          RIZZITGO
+        </option>
+
+        <option value="boonbuy">
+          BOONBUY
+        </option>
+
+        <option value="usfans">
+          USFANS
+        </option>
+
+      </select>
+
+
     </div>
-
-
-    <input
-      id="searchInput"
-      type="search"
-      placeholder="Search products or brands..."
-    >
-
-
-    <select id="agentSelect">
-
-      <option value="litbuy">
-        LITBUY
-      </option>
-
-      <option value="oopbuy">
-        OOPBUY
-      </option>
-
-      <option value="kakobuy">
-        KAKOBUY
-      </option>
-
-      <option value="hipobuy">
-        HIPOBUY
-      </option>
-
-      <option value="lovegobuy">
-        LOVEGOBUY
-      </option>
-
-      <option value="rizzitgo">
-        RIZZITGO
-      </option>
-
-      <option value="boonbuy">
-        BOONBUY
-      </option>
-
-      <option value="usfans">
-        USFANS
-      </option>
-
-    </select>
 
   </header>
 
 
-  <nav id="categoryNav"></nav>
+
+  <!-- =====================================================
+       HERO
+       ===================================================== -->
+
+  <section class="hero">
+
+    <div class="hero-inner">
+
+      <div class="hero-text">
+
+        <div class="eyebrow">
+          BESTR3PS
+        </div>
+
+        <h1>
+          FIND YOUR FINDS.
+        </h1>
+
+        <p>
+          Discover products, brands and hidden finds.
+        </p>
+
+      </div>
 
 
-  <main>
+      <!-- SOCIAL LINKS -->
+
+      <div class="social-links">
+
+        <!--
+          IMPORTANT:
+          Replace # with your actual Discord URL
+          and WhatsApp URL when you have them.
+        -->
+
+        <a
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          DISCORD
+        </a>
+
+        <a
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          WHATSAPP
+        </a>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- =====================================================
+       CATEGORY NAVIGATION
+       ===================================================== -->
+
+  <nav
+    id="categoryNav"
+    aria-label="Product categories"
+  ></nav>
+
+
+
+  <!-- =====================================================
+       MAIN
+       ===================================================== -->
+
+  <main class="products-section">
+
+
+    <!-- TOP BAR -->
 
     <div class="topbar">
 
-      <span id="status">
-        Loading...
-      </span>
 
-      <button id="refreshBtn">
-        Refresh
+      <div class="status-area">
+
+        <span id="status">
+          Loading...
+        </span>
+
+        <span class="status-divider">
+          /
+        </span>
+
+        <span>
+          <span data-product-count>
+            0
+          </span>
+          PRODUCTS
+        </span>
+
+      </div>
+
+
+      <button
+        id="refreshBtn"
+        type="button"
+      >
+        REFRESH
       </button>
+
 
     </div>
 
 
-    <div id="productGrid"></div>
 
+    <!-- PRODUCT GRID -->
+
+    <div
+      id="productGrid"
+      class="product-grid"
+    ></div>
+
+
+
+    <!-- EMPTY -->
 
     <div
       id="emptyMessage"
-      class="empty"
+      class="empty-state"
       style="display:none;"
     >
-      No products found.
+
+      <div>
+        No products found.
+      </div>
+
+      <div class="empty-small">
+        Try another search or category.
+      </div>
+
     </div>
+
 
   </main>
 
 
+
+  <!-- =====================================================
+       FOOTER
+       ===================================================== -->
+
+  <footer class="site-footer">
+
+    <div>
+      © 2026 BESTR3PS
+    </div>
+
+    <div class="footer-links">
+
+      <a href="#">
+        DISCORD
+      </a>
+
+      <a href="#">
+        WHATSAPP
+      </a>
+
+    </div>
+
+  </footer>
+
+
+
   <script src="app.js"></script>
+
 
 </body>
 
