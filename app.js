@@ -1,3 +1,8 @@
+/* =========================================================
+   BESTR3PS - app.js
+   FAST CATEGORY LOADING
+   ========================================================= */
+
 const API_URL =
   "https://script.google.com/macros/s/AKfycbxtFiRVCd9Y1MZ6l8-YlmmzRa97RZ6xppFLYoQgTEOBddtlx6wE6q9PnUaCdu3D94BR/exec";
 
@@ -6,54 +11,215 @@ const PAGE_SIZE = 30;
 
 
 const CATEGORIES = [
-  "SUMMER Pick",
-  "SNEAKERS",
-  "T-SHIRTS/SHORTS",
-  "HOODIE/PANTS",
-  "DOWNJACKET",
-  "ACCESSORIES",
-  "BAGS"
+
+  {
+    key: "SNEAKERS",
+    label: "SNEAKERS"
+  },
+
+  {
+    key: "T-SHIRTS/SHORTS",
+    label: "T-SHIRTS / SHORTS"
+  },
+
+  {
+    key: "HOODIE/PANTS",
+    label: "HOODIE / PANTS"
+  },
+
+  {
+    key: "DOWNJACKET",
+    label: "DOWNJACKET"
+  },
+
+  {
+    key: "ACCESSORIES",
+    label: "ACCESSORIES"
+  },
+
+  {
+    key: "BAGS",
+    label: "BAGS"
+  }
+
 ];
 
 
-let currentCategory = CATEGORIES[0];
-
-let currentProducts = [];
-
-let visibleCount = PAGE_SIZE;
-
-const categoryCache = {};
-
-let imageObserver = null;
+let currentCategory =
+  "SNEAKERS";
 
 
-/* ================================
-   页面初始化
-================================ */
+let currentPage =
+  1;
+
+
+let searchKeyword =
+  "";
+
+
+let allProducts =
+  [];
+
+
+let filteredProducts =
+  [];
+
+
+let categoryCache =
+  new Map();
+
+
+let loading =
+  false;
+
+
+/* =========================================================
+   INIT
+   ========================================================= */
 
 document.addEventListener(
   "DOMContentLoaded",
-  init
+  () => {
+
+    setupEvents();
+
+    renderCategoryButtons();
+
+    loadCategory(
+      currentCategory
+    );
+
+  }
 );
 
 
-function init() {
+/* =========================================================
+   EVENTS
+   ========================================================= */
 
-  renderCategoryButtons();
+function setupEvents() {
 
-  setupSearch();
+  const input =
+    document.getElementById(
+      "searchInput"
+    );
 
-  setupRefresh();
 
-  showLoadingState();
+  if (input) {
 
-  loadCategory(currentCategory);
+    input.addEventListener(
+      "input",
+      debounce(
+        function () {
+
+          searchKeyword =
+            this.value
+              .trim()
+              .toLowerCase();
+
+
+          currentPage = 1;
+
+          applyFilterAndRender();
+
+        },
+        180
+      )
+    );
+
+
+    input.addEventListener(
+      "keydown",
+      event => {
+
+        if (
+          event.key === "Enter"
+        ) {
+
+          searchKeyword =
+            input.value
+              .trim()
+              .toLowerCase();
+
+
+          currentPage = 1;
+
+          applyFilterAndRender();
+
+        }
+
+      }
+    );
+
+  }
+
+
+  const searchButton =
+    document.getElementById(
+      "searchButton"
+    );
+
+
+  if (searchButton) {
+
+    searchButton.addEventListener(
+      "click",
+      () => {
+
+        if (!input) {
+          return;
+        }
+
+
+        searchKeyword =
+          input.value
+            .trim()
+            .toLowerCase();
+
+
+        currentPage = 1;
+
+        applyFilterAndRender();
+
+      }
+    );
+
+  }
+
+
+  const refreshButton =
+    document.getElementById(
+      "refreshBtn"
+    );
+
+
+  if (refreshButton) {
+
+    refreshButton.addEventListener(
+      "click",
+      () => {
+
+        categoryCache.delete(
+          currentCategory
+        );
+
+
+        loadCategory(
+          currentCategory,
+          true
+        );
+
+      }
+    );
+
+  }
+
 }
 
 
-/* ================================
-   分类按钮
-================================ */
+/* =========================================================
+   CATEGORY BUTTONS
+   ========================================================= */
 
 function renderCategoryButtons() {
 
@@ -62,94 +228,257 @@ function renderCategoryButtons() {
       "categoryNav"
     );
 
+
   if (!nav) {
     return;
   }
 
+
   nav.innerHTML = "";
 
-  CATEGORIES.forEach(category => {
 
-    const button =
-      document.createElement("button");
-
-    button.type = "button";
-
-    button.textContent = category;
-
-    button.className =
-      category === currentCategory
-        ? "active"
-        : "";
-
-    button.addEventListener(
-      "click",
-      () => {
-
-        currentCategory = category;
-
-        document
-          .querySelectorAll(
-            "#categoryNav button"
-          )
-          .forEach(btn => {
-            btn.classList.remove("active");
-          });
-
-        button.classList.add("active");
-
-        loadCategory(category);
-      }
+  const wrapper =
+    document.createElement(
+      "div"
     );
 
-    nav.appendChild(button);
-  });
+
+  wrapper.className =
+    "categories";
+
+
+  CATEGORIES.forEach(
+    category => {
+
+      const button =
+        document.createElement(
+          "button"
+        );
+
+
+      button.type =
+        "button";
+
+
+      button.className =
+        "category-btn";
+
+
+      button.dataset.category =
+        category.key;
+
+
+      button.textContent =
+        category.label;
+
+
+      if (
+        category.key ===
+        currentCategory
+      ) {
+
+        button.classList.add(
+          "active"
+        );
+
+      }
+
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          switchCategory(
+            category.key
+          );
+
+        }
+      );
+
+
+      wrapper.appendChild(
+        button
+      );
+
+    }
+  );
+
+
+  nav.appendChild(
+    wrapper
+  );
+
 }
 
 
-/* ================================
-   加载分类
-================================ */
+/* =========================================================
+   SWITCH CATEGORY
+   ========================================================= */
 
-async function loadCategory(category) {
+function switchCategory(
+  category
+) {
 
-  visibleCount = PAGE_SIZE;
+  if (
+    loading &&
+    category ===
+      currentCategory
+  ) {
 
-  currentProducts = [];
+    return;
+
+  }
+
+
+  currentCategory =
+    category;
+
+
+  currentPage =
+    1;
+
+
+  searchKeyword =
+    "";
+
+
+  const input =
+    document.getElementById(
+      "searchInput"
+    );
+
+
+  if (input) {
+    input.value = "";
+  }
+
+
+  document
+    .querySelectorAll(
+      ".category-btn"
+    )
+    .forEach(
+      button => {
+
+        button.classList.toggle(
+          "active",
+          button.dataset.category ===
+            category
+        );
+
+      }
+    );
+
+
+  /*
+    如果这个分类已经加载过，
+    直接使用缓存。
+  */
+
+  if (
+    categoryCache.has(
+      category
+    )
+  ) {
+
+    allProducts =
+      categoryCache.get(
+        category
+      );
+
+
+    applyFilterAndRender();
+
+    return;
+
+  }
+
+
+  /*
+    第一次进入该分类，
+    才向 Apps Script 请求。
+  */
+
+  loadCategory(
+    category
+  );
+
+}
+
+
+/* =========================================================
+   LOAD ONE CATEGORY
+   ========================================================= */
+
+async function loadCategory(
+  category,
+  forceRefresh = false
+) {
+
+  if (loading) {
+    return;
+  }
+
+
+  loading =
+    true;
+
 
   showLoadingState();
 
-  /*
-    如果已经加载过，
-    直接使用缓存
-  */
 
-  if (categoryCache[category]) {
+  updateStatus(
+    "Loading " +
+    category +
+    "..."
+  );
 
-    currentProducts =
-      categoryCache[category];
 
-    renderProducts();
+  const refreshButton =
+    document.getElementById(
+      "refreshBtn"
+    );
 
-    return;
+
+  if (refreshButton) {
+
+    refreshButton.disabled =
+      true;
+
   }
 
 
   try {
 
+    const separator =
+      API_URL.includes("?")
+        ? "&"
+        : "?";
+
+
     const url =
       API_URL +
-      "?category=" +
-      encodeURIComponent(category) +
-      "&t=" +
-      Date.now();
+      separator +
+      "category=" +
+      encodeURIComponent(
+        category
+      ) +
+      (
+        forceRefresh
+          ? "&t=" +
+            Date.now()
+          : ""
+      );
 
 
     const response =
-      await fetch(url, {
-        method: "GET",
-        cache: "no-store"
-      });
+      await fetch(
+        url,
+        {
+          method: "GET",
+          cache: "no-store"
+        }
+      );
 
 
     if (!response.ok) {
@@ -158,6 +487,7 @@ async function loadCategory(category) {
         "HTTP " +
         response.status
       );
+
     }
 
 
@@ -165,73 +495,298 @@ async function loadCategory(category) {
       await response.json();
 
 
+    if (
+      !data ||
+      data._SUCCESS === false
+    ) {
+
+      throw new Error(
+        data &&
+        data.error
+          ? data.error
+          : "API error"
+      );
+
+    }
+
+
+    let products =
+      Array.isArray(
+        data.products
+      )
+        ? data.products
+        : [];
+
+
+    products =
+      normalizeProducts(
+        products
+      );
+
+
+    categoryCache.set(
+      category,
+      products
+    );
+
+
     /*
-      新版 Apps Script
+      防止快速点击其他分类时，
+      旧请求覆盖新分类。
     */
 
     if (
-      data &&
-      Array.isArray(data.products)
+      category !==
+      currentCategory
     ) {
 
-      currentProducts =
-        data.products;
+      return;
 
     }
 
-    /*
-      兼容旧格式
-    */
 
-    else if (
-      Array.isArray(data)
-    ) {
-
-      currentProducts = data;
-
-    }
-
-    else if (
-      data &&
-      Array.isArray(data[category])
-    ) {
-
-      currentProducts =
-        data[category];
-
-    }
-
-    else {
-
-      currentProducts = [];
-    }
+    allProducts =
+      products;
 
 
-    /*
-      缓存
-    */
-
-    categoryCache[category] =
-      currentProducts;
+    currentPage =
+      1;
 
 
-    renderProducts();
+    applyFilterAndRender();
+
+
+    updateStatus(
+      products.length
+        .toLocaleString() +
+      " products"
+    );
+
 
   } catch (error) {
 
     console.error(
-      "Load products error:",
+      "BESTR3PS API ERROR:",
       error
     );
 
-    showErrorState();
+
+    if (
+      category ===
+      currentCategory
+    ) {
+
+      showErrorState(
+        "Products could not be loaded."
+      );
+
+
+      updateStatus(
+        "Unable to load products"
+      );
+
+    }
+
+  } finally {
+
+    loading =
+      false;
+
+
+    if (refreshButton) {
+
+      refreshButton.disabled =
+        false;
+
+    }
+
   }
+
 }
 
 
-/* ================================
-   显示商品
-================================ */
+/* =========================================================
+   NORMALIZE
+   ========================================================= */
+
+function normalizeProducts(
+  products
+) {
+
+  if (
+    !Array.isArray(products)
+  ) {
+
+    return [];
+
+  }
+
+
+  const seen =
+    new Set();
+
+
+  const result = [];
+
+
+  products.forEach(
+    product => {
+
+      if (!product) {
+        return;
+      }
+
+
+      const normalized = {
+
+        name:
+          String(
+            product.name ||
+            product.title ||
+            product.product ||
+            ""
+          ).trim(),
+
+        price:
+          String(
+            product.price ||
+            product.usd ||
+            ""
+          ).trim(),
+
+        sourceUrl:
+          String(
+            product.sourceUrl ||
+            product.url ||
+            product.link ||
+            ""
+          ).trim(),
+
+        imageUrl:
+          String(
+            product.imageUrl ||
+            product.image ||
+            ""
+          ).trim(),
+
+        productId:
+          String(
+            product.productId ||
+            extractProductId(
+              product.sourceUrl ||
+              product.url ||
+              product.link ||
+              ""
+            ) ||
+            ""
+          ).trim()
+
+      };
+
+
+      if (
+        !normalized.name &&
+        !normalized.sourceUrl &&
+        !normalized.imageUrl
+      ) {
+
+        return;
+
+      }
+
+
+      const key =
+        normalized.productId ||
+        normalized.sourceUrl ||
+        (
+          normalized.name +
+          "|" +
+          normalized.imageUrl
+        );
+
+
+      if (
+        seen.has(key)
+      ) {
+
+        return;
+
+      }
+
+
+      seen.add(key);
+
+      result.push(
+        normalized
+      );
+
+    }
+  );
+
+
+  return result;
+
+}
+
+
+/* =========================================================
+   FILTER
+   ========================================================= */
+
+function applyFilterAndRender() {
+
+  const keyword =
+    searchKeyword
+      .trim()
+      .toLowerCase();
+
+
+  if (!keyword) {
+
+    filteredProducts =
+      allProducts.slice();
+
+  } else {
+
+    filteredProducts =
+      allProducts.filter(
+        product => {
+
+          const text = [
+
+            product.name,
+
+            product.productId,
+
+            product.sourceUrl
+
+          ]
+            .join(" ")
+            .toLowerCase();
+
+
+          return text.includes(
+            keyword
+          );
+
+        }
+      );
+
+  }
+
+
+  currentPage =
+    1;
+
+
+  renderProducts();
+
+}
+
+
+/* =========================================================
+   RENDER
+   ========================================================= */
 
 function renderProducts() {
 
@@ -240,259 +795,335 @@ function renderProducts() {
       "productGrid"
     );
 
+
   if (!grid) {
     return;
   }
 
 
-  const searchInput =
+  grid.innerHTML = "";
+
+
+  const oldLoadMore =
     document.getElementById(
-      "searchInput"
+      "loadMoreWrapper"
     );
 
 
-  const keyword =
-    searchInput
-      ? searchInput.value
-        .trim()
-        .toLowerCase()
-      : "";
-
-
-  let products =
-    currentProducts;
-
-
-  /*
-    搜索
-  */
-
-  if (keyword) {
-
-    products =
-      currentProducts.filter(
-        product => {
-
-          const name =
-            String(
-              product.name ||
-              product.title ||
-              ""
-            ).toLowerCase();
-
-          return name.includes(
-            keyword
-          );
-        }
-      );
+  if (oldLoadMore) {
+    oldLoadMore.remove();
   }
 
 
-  /*
-    没有商品
-  */
-
-  if (!products.length) {
-
-    grid.innerHTML = "";
+  if (
+    filteredProducts.length === 0
+  ) {
 
     showEmptyState();
 
+    updateProductCount(
+      0
+    );
+
     return;
+
   }
 
 
   hideEmptyState();
 
 
-  const visibleProducts =
-    products.slice(
+  const visibleCount =
+    PAGE_SIZE *
+    currentPage;
+
+
+  const visible =
+    filteredProducts.slice(
       0,
       visibleCount
     );
 
 
-  grid.innerHTML =
-    visibleProducts
-      .map(createProductCard)
-      .join("");
+  const fragment =
+    document.createDocumentFragment();
 
 
-  /*
-    Load More
-  */
+  visible.forEach(
+    product => {
 
-  if (
-    products.length >
-    visibleCount
-  ) {
-
-    const loadMore =
-      document.createElement(
-        "button"
+      fragment.appendChild(
+        createProductCard(
+          product
+        )
       );
 
-    loadMore.type = "button";
-
-    loadMore.className =
-      "load-more";
-
-    loadMore.textContent =
-      `LOAD MORE (${Math.min(
-        PAGE_SIZE,
-        products.length - visibleCount
-      )})`;
+    }
+  );
 
 
-    loadMore.addEventListener(
-      "click",
-      () => {
-
-        visibleCount +=
-          PAGE_SIZE;
-
-        renderProducts();
-      }
-    );
+  grid.appendChild(
+    fragment
+  );
 
 
-    grid.appendChild(
-      loadMore
-    );
+  updateProductCount(
+    filteredProducts.length
+  );
+
+
+  if (
+    visibleCount <
+    filteredProducts.length
+  ) {
+
+    renderLoadMore();
+
   }
 
 
-  setupImageObserver();
-
-
-  updateStatus(
-    `${products.length} products`
+  requestAnimationFrame(
+    setupImageObserver
   );
+
 }
 
 
-/* ================================
-   商品卡片
-================================ */
+/* =========================================================
+   PRODUCT CARD
+   ========================================================= */
 
-function createProductCard(product) {
+function createProductCard(
+  product
+) {
 
-  const name =
-    escapeHtml(
+  const card =
+    document.createElement(
+      "article"
+    );
+
+
+  card.className =
+    "product-card";
+
+
+  const imageWrapper =
+    document.createElement(
+      "div"
+    );
+
+
+  imageWrapper.className =
+    "product-image-wrapper";
+
+
+  if (product.imageUrl) {
+
+    const image =
+      document.createElement(
+        "img"
+      );
+
+
+    image.className =
+      "product-image";
+
+
+    image.loading =
+      "lazy";
+
+
+    image.decoding =
+      "async";
+
+
+    image.alt =
       product.name ||
-      product.title ||
-      "Product"
+      "Product";
+
+
+    image.dataset.src =
+      product.imageUrl;
+
+
+    imageWrapper.appendChild(
+      image
+    );
+
+  } else {
+
+    imageWrapper.innerHTML =
+      `
+        <div class="no-image">
+          NO IMAGE
+        </div>
+      `;
+
+  }
+
+
+  const content =
+    document.createElement(
+      "div"
     );
 
 
-  const price =
-    escapeHtml(
-      product.price ||
-      ""
+  content.className =
+    "product-content";
+
+
+  const title =
+    document.createElement(
+      "div"
     );
 
 
-  const image =
-    product.imageUrl ||
-    product.image ||
-    "";
+  title.className =
+    "product-name";
 
 
-  const url =
-    product.sourceUrl ||
-    product.url ||
-    product.link ||
-    "#";
+  title.textContent =
+    product.name ||
+    "Unnamed Product";
 
 
-  return `
-    <div class="product-card">
-
-      <a
-        href="${escapeAttribute(url)}"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="product-link"
-      >
-
-        <div class="product-image">
-
-          ${
-            image
-              ? `
-                <img
-                  class="lazy-image"
-                  data-src="${escapeAttribute(image)}"
-                  alt="${name}"
-                  loading="lazy"
-                >
-              `
-              : `
-                <div class="image-placeholder">
-                  No Image
-                </div>
-              `
-          }
-
-        </div>
+  content.appendChild(
+    title
+  );
 
 
-        <div class="product-info">
+  if (product.price) {
 
-          <div class="product-name">
-            ${name}
-          </div>
+    const price =
+      document.createElement(
+        "div"
+      );
 
-          ${
-            price
-              ? `
-                <div class="product-price">
-                  ${price}
-                </div>
-              `
-              : ""
-          }
 
-        </div>
+    price.className =
+      "product-price";
 
-      </a>
 
-    </div>
-  `;
+    price.textContent =
+      formatPrice(
+        product.price
+      );
+
+
+    content.appendChild(
+      price
+    );
+
+  }
+
+
+  const button =
+    document.createElement(
+      "a"
+    );
+
+
+  button.className =
+    "product-button";
+
+
+  button.target =
+    "_blank";
+
+
+  button.rel =
+    "noopener noreferrer";
+
+
+  button.textContent =
+    "VIEW PRODUCT";
+
+
+  if (
+    product.sourceUrl
+  ) {
+
+    button.href =
+      product.sourceUrl;
+
+  } else {
+
+    button.href =
+      "#";
+
+
+    button.classList.add(
+      "disabled"
+    );
+
+  }
+
+
+  card.appendChild(
+    imageWrapper
+  );
+
+
+  card.appendChild(
+    content
+  );
+
+
+  card.appendChild(
+    button
+  );
+
+
+  return card;
+
 }
 
 
-/* ================================
-   图片懒加载
-================================ */
+/* =========================================================
+   IMAGE LAZY LOAD
+   ========================================================= */
+
+let imageObserver = null;
+
 
 function setupImageObserver() {
 
   const images =
     document.querySelectorAll(
-      ".lazy-image"
+      "img[data-src]"
     );
 
 
-  /*
-    浏览器不支持时直接加载
-  */
+  if (
+    images.length === 0
+  ) {
+
+    return;
+
+  }
+
 
   if (
-    !("IntersectionObserver" in window)
+    !(
+      "IntersectionObserver"
+      in window
+    )
   ) {
 
     images.forEach(
       loadImage
     );
 
+
     return;
+
   }
 
 
   if (imageObserver) {
 
     imageObserver.disconnect();
+
   }
 
 
@@ -500,142 +1131,172 @@ function setupImageObserver() {
     new IntersectionObserver(
       entries => {
 
-        entries.forEach(entry => {
+        entries.forEach(
+          entry => {
 
-          if (
-            entry.isIntersecting
-          ) {
+            if (
+              entry.isIntersecting
+            ) {
 
-            loadImage(
-              entry.target
-            );
+              loadImage(
+                entry.target
+              );
 
-            imageObserver.unobserve(
-              entry.target
-            );
+
+              imageObserver.unobserve(
+                entry.target
+              );
+
+            }
+
           }
-        });
+        );
 
       },
       {
-        rootMargin: "300px"
+        rootMargin:
+          "600px 0px"
       }
     );
 
 
-  images.forEach(image => {
+  images.forEach(
+    image => {
 
-    imageObserver.observe(
-      image
-    );
-  });
+      imageObserver.observe(
+        image
+      );
+
+    }
+  );
+
 }
 
 
-function loadImage(img) {
+/* =========================================================
+   IMAGE
+   ========================================================= */
+
+function loadImage(
+  image
+) {
 
   const src =
-    img.dataset.src;
+    image.dataset.src;
+
 
   if (!src) {
     return;
   }
 
 
-  img.src = src;
-
-  img.removeAttribute(
-    "data-src"
-  );
-
-
-  img.onerror = () => {
-
-    img.style.display =
-      "none";
-  };
-}
-
-
-/* ================================
-   搜索
-================================ */
-
-function setupSearch() {
-
-  const input =
-    document.getElementById(
-      "searchInput"
-    );
-
-
-  if (!input) {
-    return;
-  }
-
-
-  let timer = null;
-
-
-  input.addEventListener(
-    "input",
+  image.onload =
     () => {
 
-      clearTimeout(timer);
-
-
-      timer = setTimeout(
-        () => {
-
-          visibleCount =
-            PAGE_SIZE;
-
-          renderProducts();
-
-        },
-        200
+      image.classList.add(
+        "loaded"
       );
-    }
-  );
+
+    };
+
+
+  image.onerror =
+    () => {
+
+      image.classList.add(
+        "image-error"
+      );
+
+    };
+
+
+  image.src =
+    src;
+
+
+  delete image.dataset.src;
+
 }
 
 
-/* ================================
-   刷新
-================================ */
+/* =========================================================
+   LOAD MORE
+   ========================================================= */
 
-function setupRefresh() {
+function renderLoadMore() {
 
-  const button =
-    document.getElementById(
-      "refreshBtn"
+  const wrapper =
+    document.createElement(
+      "div"
     );
 
 
-  if (!button) {
-    return;
-  }
+  wrapper.id =
+    "loadMoreWrapper";
+
+
+  wrapper.className =
+    "load-more-wrapper";
+
+
+  const button =
+    document.createElement(
+      "button"
+    );
+
+
+  button.type =
+    "button";
+
+
+  button.className =
+    "load-more-button";
+
+
+  button.textContent =
+    "LOAD MORE";
 
 
   button.addEventListener(
     "click",
     () => {
 
-      delete categoryCache[
-        currentCategory
-      ];
+      currentPage++;
 
-      loadCategory(
-        currentCategory
-      );
+      renderProducts();
+
     }
   );
+
+
+  wrapper.appendChild(
+    button
+  );
+
+
+  const grid =
+    document.getElementById(
+      "productGrid"
+    );
+
+
+  if (
+    grid &&
+    grid.parentNode
+  ) {
+
+    grid.parentNode.appendChild(
+      wrapper
+    );
+
+  }
+
 }
 
 
-/* ================================
-   Loading
-================================ */
+/* =========================================================
+   LOADING
+   ========================================================= */
 
 function showLoadingState() {
 
@@ -651,26 +1312,32 @@ function showLoadingState() {
 
 
   grid.innerHTML = `
-    <div class="loading">
-      Loading products...
+
+    <div class="loading-state">
+
+      <div class="loading-spinner"></div>
+
+      <div>
+        Loading products...
+      </div>
+
     </div>
+
   `;
 
 
   hideEmptyState();
 
-
-  updateStatus(
-    "Loading..."
-  );
 }
 
 
-/* ================================
-   Error
-================================ */
+/* =========================================================
+   ERROR
+   ========================================================= */
 
-function showErrorState() {
+function showErrorState(
+  message
+) {
 
   const grid =
     document.getElementById(
@@ -684,66 +1351,103 @@ function showErrorState() {
 
 
   grid.innerHTML = `
-    <div class="loading">
-      Failed to load products.
-      <br>
-      Please try again.
+
+    <div class="error-state">
+
+      <div>
+        ${escapeHtml(message)}
+      </div>
+
+      <button
+        type="button"
+        class="retry-button"
+        id="retryButton"
+      >
+        RETRY
+      </button>
+
     </div>
+
   `;
 
 
-  updateStatus(
-    "Load failed"
-  );
+  const retry =
+    document.getElementById(
+      "retryButton"
+    );
+
+
+  if (retry) {
+
+    retry.addEventListener(
+      "click",
+      () => {
+
+        categoryCache.delete(
+          currentCategory
+        );
+
+
+        loadCategory(
+          currentCategory,
+          true
+        );
+
+      }
+    );
+
+  }
+
 }
 
 
-/* ================================
-   Empty
-================================ */
+/* =========================================================
+   EMPTY
+   ========================================================= */
 
 function showEmptyState() {
 
-  const empty =
+  const message =
     document.getElementById(
       "emptyMessage"
     );
 
 
-  if (empty) {
+  if (message) {
 
-    empty.style.display =
-      "block";
+    message.style.display =
+      "flex";
+
   }
 
-
-  updateStatus(
-    "0 products"
-  );
 }
 
 
 function hideEmptyState() {
 
-  const empty =
+  const message =
     document.getElementById(
       "emptyMessage"
     );
 
 
-  if (empty) {
+  if (message) {
 
-    empty.style.display =
+    message.style.display =
       "none";
+
   }
+
 }
 
 
-/* ================================
-   状态
-================================ */
+/* =========================================================
+   STATUS
+   ========================================================= */
 
-function updateStatus(text) {
+function updateStatus(
+  text
+) {
 
   const status =
     document.getElementById(
@@ -755,41 +1459,208 @@ function updateStatus(text) {
 
     status.textContent =
       text;
+
   }
+
 }
 
 
-/* ================================
-   HTML 安全处理
-================================ */
+/* =========================================================
+   COUNT
+   ========================================================= */
 
-function escapeHtml(value) {
+function updateProductCount(
+  count
+) {
 
-  return String(value)
-    .replace(
-      /&/g,
+  document
+    .querySelectorAll(
+      "[data-product-count]"
+    )
+    .forEach(
+      element => {
+
+        element.textContent =
+          count.toLocaleString();
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   PRICE
+   ========================================================= */
+
+function formatPrice(
+  price
+) {
+
+  if (!price) {
+    return "";
+  }
+
+
+  const value =
+    String(price).trim();
+
+
+  if (
+    value.includes("$") ||
+    value.includes("USD") ||
+    value.includes("€") ||
+    value.includes("EUR") ||
+    value.includes("£")
+  ) {
+
+    return value;
+
+  }
+
+
+  return "$" + value;
+
+}
+
+
+/* =========================================================
+   ID
+   ========================================================= */
+
+function extractProductId(
+  url
+) {
+
+  if (!url) {
+    return "";
+  }
+
+
+  const patterns = [
+
+    /itemID[=\/](\d+)/i,
+
+    /goodsId[=\/](\d+)/i,
+
+    /product[=\/](\d+)/i,
+
+    /\/(\d{7,})/
+
+  ];
+
+
+  for (
+    const pattern of patterns
+  ) {
+
+    const match =
+      String(url).match(
+        pattern
+      );
+
+
+    if (match) {
+
+      return match[1];
+
+    }
+
+  }
+
+
+  return "";
+
+}
+
+
+/* =========================================================
+   ESCAPE
+   ========================================================= */
+
+function escapeHtml(
+  text
+) {
+
+  return String(text)
+
+    .replaceAll(
+      "&",
       "&amp;"
     )
-    .replace(
-      /</g,
+
+    .replaceAll(
+      "<",
       "&lt;"
     )
-    .replace(
-      />/g,
+
+    .replaceAll(
+      ">",
       "&gt;"
     )
-    .replace(
-      /"/g,
+
+    .replaceAll(
+      '"',
       "&quot;"
     )
-    .replace(
-      /'/g,
+
+    .replaceAll(
+      "'",
       "&#039;"
     );
+
 }
 
 
-function escapeAttribute(value) {
+/* =========================================================
+   DEBOUNCE
+   ========================================================= */
 
-  return escapeHtml(value);
+function debounce(
+  func,
+  wait
+) {
+
+  let timeout;
+
+
+  return function (...args) {
+
+    clearTimeout(
+      timeout
+    );
+
+
+    timeout =
+      setTimeout(
+        () => {
+
+          func.apply(
+            this,
+            args
+          );
+
+        },
+        wait
+      );
+
+  };
+
 }
+
+
+/* =========================================================
+   GLOBAL
+   ========================================================= */
+
+window.BESTR3PS = {
+
+  loadCategory,
+
+  switchCategory,
+
+  renderProducts,
+
+  applyFilterAndRender
+
+};
