@@ -1,179 +1,28 @@
-```html
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <title>BESTR3PS</title>
-
-  <meta
-    name="description"
-    content="BESTR3PS - Find the best products from trusted agents."
-  >
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>商品展示商城</title>
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-  <!-- =========================
-       HEADER
-  ========================== -->
-  <header class="site-header">
-    <div class="header-inner">
-
-      <div class="logo">
-        BESTR3PS
-      </div>
-
-      <div class="agent-section">
-        <label for="agentSelect">
-          Agent
-        </label>
-
-        <select id="agentSelect">
-          <option value="LITBUY">LITBUY</option>
-          <option value="OOPBUY">OOPBUY</option>
-          <option value="KAKOBUY">KAKOBUY</option>
-          <option value="HIPOBUY">HIPOBUY</option>
-          <option value="LOVEGOBUY">LOVEGOBUY</option>
-          <option value="RIZZITGO">RIZZITGO</option>
-          <option value="BOONBUY">BOONBUY</option>
-          <option value="USFANS">USFANS</option>
-        </select>
-      </div>
-
+  <header class="header">
+    <div class="search-container">
+      <input type="text" id="searchInput" placeholder="搜索商品名称...">
     </div>
   </header>
 
-
-  <!-- =========================
-       HERO
-  ========================== -->
-  <section class="hero">
-
-    <div class="hero-content">
-
-      <div class="hero-logo">
-        BESTR3PS
-      </div>
-
-      <h1>
-        FIND YOUR NEXT PICK
-      </h1>
-
-      <p>
-        Search thousands of products from trusted sources.
-      </p>
-
-    </div>
-
-  </section>
-
-
-  <!-- =========================
-       SEARCH
-  ========================== -->
-  <section class="search-section">
-
-    <div class="search-wrapper">
-
-      <input
-        id="searchInput"
-        type="text"
-        placeholder="Search products..."
-        autocomplete="off"
-      >
-
-    </div>
-
-  </section>
-
-
-  <!-- =========================
-       CATEGORY NAVIGATION
-  ========================== -->
-  <nav class="category-section">
-
-    <div
-      id="categoryNav"
-      class="category-nav"
-    ></div>
-
-  </nav>
-
-
-  <!-- =========================
-       STATUS / REFRESH
-  ========================== -->
-  <section class="status-section">
-
-    <div id="status">
-      Loading...
-    </div>
-
-    <button
-      id="refreshBtn"
-      type="button"
-      onclick="location.reload()"
-    >
-      REFRESH
-    </button>
-
-  </section>
-
-
-  <!-- =========================
-       EMPTY MESSAGE
-  ========================== -->
-  <div
-    id="emptyMessage"
-    class="empty-message"
-    style="display:none;"
-  >
-    No products found.
-  </div>
-
-
-  <!-- =========================
-       PRODUCT GRID
-  ========================== -->
-  <main class="products-section">
-
-    <div
-      id="productGrid"
-      class="product-grid"
-    ></div>
-
+  <main class="container">
+    <div id="productGrid" class="product-grid"></div>
+    <div id="emptyMessage" class="empty-state" style="display: none;">暂无匹配商品</div>
   </main>
 
-
-  <!-- =========================
-       FOOTER
-  ========================== -->
-  <footer class="site-footer">
-
-    <div class="footer-inner">
-
-      <div class="footer-brand">
-        BESTR3PS
-      </div>
-
-      <div class="footer-text">
-        Product finds &amp; recommendations
-      </div>
-
-    </div>
-
+  <footer class="footer">
+    <span id="status">正在加载商品列表...</span>
   </footer>
 
-
   <script src="app.js"></script>
-
 </body>
 </html>
-```
