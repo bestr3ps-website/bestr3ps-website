@@ -1,9 +1,24 @@
+```javascript
 const API_URL =
   "https://script.google.com/macros/s/AKfycbxtFiRVCd9Y1MZ6l8-YlmmzRa97RZ6xppFLYoQgTEOBddtlx6wE6q9PnUaCdu3D94BR/exec";
 
 
+/*
+=========================================================
+SETTINGS
+=========================================================
+*/
+
 const PAGE_SIZE = 30;
 
+const CACHE_VERSION = "v2";
+
+
+/*
+=========================================================
+CONFIRMED CATEGORIES
+=========================================================
+*/
 
 const CATEGORIES = [
   "SUMMER Pick",
@@ -24,28 +39,28 @@ let currentProducts = [];
 let visibleCount =
   PAGE_SIZE;
 
+
+/*
+内存缓存
+
+当前页面打开期间，
+已经加载过的分类不会重复请求。
+*/
+
 const categoryCache = {};
 
-let imageObserver = null;
 
-
-/* =========================
-   初始化
-========================= */
-
-document.addEventListener(
-  "DOMContentLoaded",
-  init
-);
-
+/*
+=========================================================
+INIT
+=========================================================
+*/
 
 function init() {
 
-  renderCategories();
+  renderCategoryButtons();
 
-  setupSearch();
-
-  setupRefresh();
+  showLoadingState();
 
   loadCategory(
     currentCategory
@@ -53,18 +68,22 @@ function init() {
 }
 
 
-/* =========================
-   分类
-========================= */
+/*
+=========================================================
+CATEGORY BUTTONS
+=========================================================
+*/
 
-function renderCategories() {
+function renderCategoryButtons() {
 
   const nav =
     document.getElementById(
       "categoryNav"
     );
 
-  if (!nav) return;
+  if (!nav) {
+    return;
+  }
 
 
   nav.innerHTML = "";
@@ -73,42 +92,42 @@ function renderCategories() {
   CATEGORIES.forEach(
     category => {
 
-      const button =
+      const btn =
         document.createElement(
           "button"
         );
 
 
-      button.type = "button";
-
-      button.textContent =
+      btn.textContent =
         category;
 
 
-      /*
-        保持原来的 CSS
-      */
-
-      button.className =
-        "category-button";
-
-
-      if (
+      btn.className =
         category ===
         currentCategory
-      ) {
-
-        button.classList.add(
-          "active"
-        );
-      }
+          ? "active"
+          : "";
 
 
-      button.onclick =
-        function () {
+      btn.addEventListener(
+        "click",
+        () => {
+
+          if (
+            currentCategory ===
+            category
+          ) {
+
+            return;
+          }
+
 
           currentCategory =
             category;
+
+
+          visibleCount =
+            PAGE_SIZE;
 
 
           document
@@ -123,7 +142,7 @@ function renderCategories() {
             );
 
 
-          button.classList.add(
+          btn.classList.add(
             "active"
           );
 
@@ -131,37 +150,47 @@ function renderCategories() {
           loadCategory(
             category
           );
-        };
+
+        }
+      );
 
 
       nav.appendChild(
-        button
+        btn
       );
+
     }
   );
 }
 
 
-/* =========================
-   加载分类
-========================= */
+/*
+=========================================================
+LOAD CATEGORY
+=========================================================
+*/
 
 async function loadCategory(
   category
 ) {
 
+  currentProducts = [];
+
   visibleCount =
     PAGE_SIZE;
 
 
+  showLoadingState();
+
+
   /*
-    有缓存直接显示
+  -------------------------------------------------------
+  1. 当前页面内存缓存
+  -------------------------------------------------------
   */
 
   if (
-    categoryCache[
-      category
-    ]
+    categoryCache[category]
   ) {
 
     currentProducts =
@@ -175,8 +204,98 @@ async function loadCategory(
   }
 
 
-  showLoading();
+  /*
+  -------------------------------------------------------
+  2. 浏览器 localStorage 缓存
+  -------------------------------------------------------
+  */
 
+  const storageKey =
+    getStorageKey(
+      category
+    );
+
+
+  try {
+
+    const saved =
+      localStorage.getItem(
+        storageKey
+      );
+
+
+    if (saved) {
+
+      const parsed =
+        JSON.parse(saved);
+
+
+      if (
+        Array.isArray(parsed) &&
+        parsed.length > 0
+      ) {
+
+        currentProducts =
+          parsed;
+
+
+        categoryCache[
+          category
+        ] = parsed;
+
+
+        renderProducts();
+
+
+        /*
+        -------------------------------------------------
+        后台更新数据
+
+        用户已经看到商品，
+        不需要一直等 API。
+        -------------------------------------------------
+        */
+
+        refreshCategoryInBackground(
+          category
+        );
+
+
+        return;
+      }
+    }
+
+  } catch (error) {
+
+    console.warn(
+      "Local cache error:",
+      error
+    );
+
+  }
+
+
+  /*
+  -------------------------------------------------------
+  3. 第一次加载 → 请求 Apps Script
+  -------------------------------------------------------
+  */
+
+  await fetchCategory(
+    category
+  );
+}
+
+
+/*
+=========================================================
+FETCH CATEGORY
+=========================================================
+*/
+
+async function fetchCategory(
+  category
+) {
 
   try {
 
@@ -185,15 +304,15 @@ async function loadCategory(
       "?category=" +
       encodeURIComponent(
         category
-      ) +
-      "&v=3";
+      );
 
 
     const response =
       await fetch(
         url,
         {
-          cache: "no-store"
+          method: "GET",
+          cache: "default"
         }
       );
 
@@ -211,6 +330,15 @@ async function loadCategory(
       await response.json();
 
 
+    /*
+    -----------------------------------------------------
+    新 API 格式
+    -----------------------------------------------------
+    */
+
+    let products = [];
+
+
     if (
       data &&
       Array.isArray(
@@ -218,27 +346,102 @@ async function loadCategory(
       )
     ) {
 
-      currentProducts =
+      products =
         data.products;
 
-    } else {
-
-      currentProducts = [];
     }
 
 
     /*
-      只有有商品才缓存
+    -----------------------------------------------------
+    兼容旧 API
+
+    如果以后 API 返回：
+
+    {
+      "SNEAKERS": [...]
+    }
+
+    也仍然可以读取。
+    -----------------------------------------------------
+    */
+
+    else if (
+      data &&
+      Array.isArray(
+        data[category]
+      )
+    ) {
+
+      products =
+        data[category];
+
+    }
+
+
+    /*
+    如果 API 直接返回数组
+    */
+
+    else if (
+      Array.isArray(data)
+    ) {
+
+      products =
+        data;
+
+    }
+
+
+    /*
+    -----------------------------------------------------
+    重要：
+
+    不缓存 0 product。
+
+    防止 API 临时异常时，
+    把空数据保存下来。
+    -----------------------------------------------------
     */
 
     if (
-      currentProducts.length
+      !Array.isArray(products) ||
+      products.length === 0
     ) {
 
-      categoryCache[
-        category
-      ] = currentProducts;
+      currentProducts = [];
+
+      showEmptyState();
+
+      return;
     }
+
+
+    /*
+    -----------------------------------------------------
+    保存到内存缓存
+    -----------------------------------------------------
+    */
+
+    currentProducts =
+      products;
+
+
+    categoryCache[
+      category
+    ] = products;
+
+
+    /*
+    -----------------------------------------------------
+    保存到浏览器缓存
+    -----------------------------------------------------
+    */
+
+    saveLocalCache(
+      category,
+      products
+    );
 
 
     renderProducts();
@@ -247,17 +450,189 @@ async function loadCategory(
   } catch (error) {
 
     console.error(
+      "Load products error:",
       error
     );
 
-    showError();
+
+    showErrorState();
   }
 }
 
 
-/* =========================
-   商品
-========================= */
+/*
+=========================================================
+BACKGROUND REFRESH
+=========================================================
+*/
+
+async function refreshCategoryInBackground(
+  category
+) {
+
+  try {
+
+    const url =
+      API_URL +
+      "?category=" +
+      encodeURIComponent(
+        category
+      );
+
+
+    const response =
+      await fetch(
+        url,
+        {
+          method: "GET",
+          cache: "no-store"
+        }
+      );
+
+
+    if (!response.ok) {
+      return;
+    }
+
+
+    const data =
+      await response.json();
+
+
+    let products = [];
+
+
+    if (
+      data &&
+      Array.isArray(
+        data.products
+      )
+    ) {
+
+      products =
+        data.products;
+
+    }
+
+
+    else if (
+      data &&
+      Array.isArray(
+        data[category]
+      )
+    ) {
+
+      products =
+        data[category];
+
+    }
+
+
+    if (
+      products.length > 0
+    ) {
+
+      categoryCache[
+        category
+      ] = products;
+
+
+      saveLocalCache(
+        category,
+        products
+      );
+
+
+      /*
+      只有用户仍然停留在这个分类，
+      才更新当前页面。
+      */
+
+      if (
+        currentCategory ===
+        category
+      ) {
+
+        currentProducts =
+          products;
+
+        renderProducts();
+      }
+    }
+
+  } catch (error) {
+
+    console.warn(
+      "Background refresh failed:",
+      error
+    );
+
+  }
+}
+
+
+/*
+=========================================================
+LOCAL STORAGE KEY
+=========================================================
+*/
+
+function getStorageKey(
+  category
+) {
+
+  return (
+    "bestr3ps_products_" +
+    CACHE_VERSION +
+    "_" +
+    category
+  );
+}
+
+
+/*
+=========================================================
+SAVE LOCAL CACHE
+=========================================================
+*/
+
+function saveLocalCache(
+  category,
+  products
+) {
+
+  try {
+
+    localStorage.setItem(
+      getStorageKey(
+        category
+      ),
+      JSON.stringify(
+        products
+      )
+    );
+
+  } catch (error) {
+
+    /*
+    localStorage 空间不足时，
+    不影响网站正常运行。
+    */
+
+    console.warn(
+      "Could not save cache:",
+      error
+    );
+
+  }
+}
+
+
+/*
+=========================================================
+RENDER PRODUCTS
+=========================================================
+*/
 
 function renderProducts() {
 
@@ -267,18 +642,20 @@ function renderProducts() {
     );
 
 
-  if (!grid) return;
+  if (!grid) {
+    return;
+  }
 
 
-  const search =
+  const searchInput =
     document.getElementById(
       "searchInput"
     );
 
 
   const keyword =
-    search
-      ? search.value
+    searchInput
+      ? searchInput.value
           .trim()
           .toLowerCase()
       : "";
@@ -288,36 +665,64 @@ function renderProducts() {
     currentProducts;
 
 
+  /*
+  -------------------------------------------------------
+  SEARCH
+  -------------------------------------------------------
+  */
+
   if (keyword) {
 
     products =
-      products.filter(
-        product =>
-          String(
-            product.name || ""
-          )
-            .toLowerCase()
-            .includes(
-              keyword
-            )
+      currentProducts.filter(
+        product => {
+
+          const name =
+            String(
+              product.name ||
+              product.title ||
+              product.product ||
+              ""
+            ).toLowerCase();
+
+
+          return name.includes(
+            keyword
+          );
+
+        }
       );
   }
 
 
-  if (!products.length) {
+  /*
+  -------------------------------------------------------
+  EMPTY
+  -------------------------------------------------------
+  */
+
+  if (
+    !products.length
+  ) {
 
     grid.innerHTML = "";
 
-    showEmpty();
+    showEmptyState();
 
     return;
   }
 
 
-  hideEmpty();
+  hideEmptyState();
 
 
-  const visible =
+  /*
+  -------------------------------------------------------
+  ONLY RENDER FIRST 30
+  -------------------------------------------------------
+  */
+
+  const visibleProducts =
     products.slice(
       0,
       visibleCount
@@ -325,12 +730,21 @@ function renderProducts() {
 
 
   grid.innerHTML =
-    visible
+    visibleProducts
       .map(
-        createProductCard
+        product =>
+          createProductCard(
+            product
+          )
       )
       .join("");
 
+
+  /*
+  -------------------------------------------------------
+  LOAD MORE
+  -------------------------------------------------------
+  */
 
   if (
     products.length >
@@ -343,26 +757,29 @@ function renderProducts() {
       );
 
 
-    loadMore.type =
-      "button";
-
-
     loadMore.className =
       "load-more";
 
 
     loadMore.textContent =
-      "LOAD MORE";
+      `LOAD MORE (${Math.min(
+        PAGE_SIZE,
+        products.length -
+          visibleCount
+      )})`;
 
 
-    loadMore.onclick =
-      function () {
+    loadMore.addEventListener(
+      "click",
+      () => {
 
         visibleCount +=
           PAGE_SIZE;
 
         renderProducts();
-      };
+
+      }
+    );
 
 
     grid.appendChild(
@@ -371,19 +788,26 @@ function renderProducts() {
   }
 
 
+  /*
+  -------------------------------------------------------
+  LAZY IMAGES
+  -------------------------------------------------------
+  */
+
   setupImageObserver();
 
 
   updateStatus(
-    products.length +
-      " products"
+    `${products.length} products`
   );
 }
 
 
-/* =========================
-   商品卡片
-========================= */
+/*
+=========================================================
+CREATE PRODUCT CARD
+=========================================================
+*/
 
 function createProductCard(
   product
@@ -392,6 +816,8 @@ function createProductCard(
   const name =
     escapeHtml(
       product.name ||
+      product.title ||
+      product.product ||
       "Product"
     );
 
@@ -399,25 +825,29 @@ function createProductCard(
   const price =
     escapeHtml(
       product.price ||
+      product.usd ||
       ""
     );
 
 
-  const image =
-    product.imageUrl ||
-    "";
-
-
   const url =
     product.sourceUrl ||
+    product.url ||
+    product.link ||
     "#";
+
+
+  const image =
+    product.imageUrl ||
+    product.image ||
+    "";
 
 
   return `
     <div class="product-card">
 
       <a
-        href="${escapeHtml(url)}"
+        href="${escapeAttribute(url)}"
         target="_blank"
         rel="noopener noreferrer"
         class="product-link"
@@ -430,10 +860,11 @@ function createProductCard(
               ? `
                 <img
                   class="lazy-image"
-                  data-src="${escapeHtml(
+                  data-src="${escapeAttribute(
                     image
                   )}"
                   alt="${name}"
+                  loading="lazy"
                 >
               `
               : `
@@ -451,6 +882,7 @@ function createProductCard(
           <div class="product-name">
             ${name}
           </div>
+
 
           ${
             price
@@ -471,9 +903,11 @@ function createProductCard(
 }
 
 
-/* =========================
-   图片懒加载
-========================= */
+/*
+=========================================================
+IMAGE OBSERVER
+=========================================================
+*/
 
 function setupImageObserver() {
 
@@ -484,7 +918,21 @@ function setupImageObserver() {
 
 
   if (
-    !("IntersectionObserver" in window)
+    !images.length
+  ) {
+    return;
+  }
+
+
+  /*
+  不支持 IntersectionObserver
+  */
+
+  if (
+    !(
+      "IntersectionObserver"
+      in window
+    )
   ) {
 
     images.forEach(
@@ -495,18 +943,26 @@ function setupImageObserver() {
   }
 
 
-  if (imageObserver) {
+  /*
+  清除旧 observer
+  */
 
-    imageObserver.disconnect();
+  if (
+    window._imageObserver
+  ) {
+
+    window
+      ._imageObserver
+      .disconnect();
   }
 
 
-  imageObserver =
+  window._imageObserver =
     new IntersectionObserver(
-      function (entries) {
+      entries => {
 
         entries.forEach(
-          function (entry) {
+          entry => {
 
             if (
               entry.isIntersecting
@@ -517,31 +973,43 @@ function setupImageObserver() {
               );
 
 
-              imageObserver.unobserve(
-                entry.target
-              );
+              window
+                ._imageObserver
+                .unobserve(
+                  entry.target
+                );
             }
+
           }
         );
 
       },
       {
         rootMargin:
-          "500px"
+          "400px"
       }
     );
 
 
   images.forEach(
-    function (image) {
+    image => {
 
-      imageObserver.observe(
-        image
-      );
+      window
+        ._imageObserver
+        .observe(
+          image
+        );
+
     }
   );
 }
 
+
+/*
+=========================================================
+LOAD IMAGE
+=========================================================
+*/
 
 function loadImage(img) {
 
@@ -549,7 +1017,9 @@ function loadImage(img) {
     img.dataset.src;
 
 
-  if (!src) return;
+  if (!src) {
+    return;
+  }
 
 
   img.src = src;
@@ -560,18 +1030,20 @@ function loadImage(img) {
   );
 
 
-  img.onerror =
-    function () {
+  img.onerror = () => {
 
-      img.style.display =
-        "none";
-    };
+    img.style.display =
+      "none";
+
+  };
 }
 
 
-/* =========================
-   搜索
-========================= */
+/*
+=========================================================
+SEARCH
+=========================================================
+*/
 
 function setupSearch() {
 
@@ -581,22 +1053,26 @@ function setupSearch() {
     );
 
 
-  if (!input) return;
+  if (!input) {
+    return;
+  }
 
 
-  let timer;
+  let timer = null;
 
 
   input.addEventListener(
     "input",
-    function () {
+    () => {
 
-      clearTimeout(timer);
+      clearTimeout(
+        timer
+      );
 
 
       timer =
         setTimeout(
-          function () {
+          () => {
 
             visibleCount =
               PAGE_SIZE;
@@ -604,48 +1080,21 @@ function setupSearch() {
             renderProducts();
 
           },
-          150
+          200
         );
+
     }
   );
 }
 
 
-/* =========================
-   刷新
-========================= */
+/*
+=========================================================
+LOADING
+=========================================================
+*/
 
-function setupRefresh() {
-
-  const button =
-    document.getElementById(
-      "refreshBtn"
-    );
-
-
-  if (!button) return;
-
-
-  button.onclick =
-    function () {
-
-      delete categoryCache[
-        currentCategory
-      ];
-
-
-      loadCategory(
-        currentCategory
-      );
-    };
-}
-
-
-/* =========================
-   状态
-========================= */
-
-function showLoading() {
+function showLoadingState() {
 
   const grid =
     document.getElementById(
@@ -653,7 +1102,9 @@ function showLoading() {
     );
 
 
-  if (!grid) return;
+  if (!grid) {
+    return;
+  }
 
 
   grid.innerHTML = `
@@ -663,7 +1114,7 @@ function showLoading() {
   `;
 
 
-  hideEmpty();
+  hideEmptyState();
 
 
   updateStatus(
@@ -672,7 +1123,13 @@ function showLoading() {
 }
 
 
-function showError() {
+/*
+=========================================================
+ERROR
+=========================================================
+*/
+
+function showErrorState() {
 
   const grid =
     document.getElementById(
@@ -680,12 +1137,16 @@ function showError() {
     );
 
 
-  if (!grid) return;
+  if (!grid) {
+    return;
+  }
 
 
   grid.innerHTML = `
     <div class="loading">
       Failed to load products.
+      <br>
+      Please try again.
     </div>
   `;
 
@@ -696,7 +1157,13 @@ function showError() {
 }
 
 
-function showEmpty() {
+/*
+=========================================================
+EMPTY
+=========================================================
+*/
+
+function showEmptyState() {
 
   const empty =
     document.getElementById(
@@ -717,7 +1184,13 @@ function showEmpty() {
 }
 
 
-function hideEmpty() {
+/*
+=========================================================
+HIDE EMPTY
+=========================================================
+*/
+
+function hideEmptyState() {
 
   const empty =
     document.getElementById(
@@ -732,6 +1205,12 @@ function hideEmpty() {
   }
 }
 
+
+/*
+=========================================================
+STATUS
+=========================================================
+*/
 
 function updateStatus(
   text
@@ -751,33 +1230,137 @@ function updateStatus(
 }
 
 
-/* =========================
-   安全
-========================= */
+/*
+=========================================================
+ESCAPE HTML
+=========================================================
+*/
 
 function escapeHtml(
   value
 ) {
 
   return String(value)
+
     .replace(
       /&/g,
       "&amp;"
     )
+
     .replace(
       /</g,
       "&lt;"
     )
+
     .replace(
       />/g,
       "&gt;"
     )
+
     .replace(
       /"/g,
       "&quot;"
     )
+
     .replace(
       /'/g,
       "&#039;"
     );
 }
+
+
+/*
+=========================================================
+ESCAPE ATTRIBUTE
+=========================================================
+*/
+
+function escapeAttribute(
+  value
+) {
+
+  return escapeHtml(
+    value
+  );
+}
+
+
+/*
+=========================================================
+REFRESH BUTTON
+=========================================================
+*/
+
+function setupRefreshButton() {
+
+  const button =
+    document.getElementById(
+      "refreshBtn"
+    );
+
+
+  if (!button) {
+    return;
+  }
+
+
+  button.addEventListener(
+    "click",
+    async () => {
+
+      /*
+      清掉当前分类的本地缓存
+      */
+
+      try {
+
+        localStorage.removeItem(
+          getStorageKey(
+            currentCategory
+          )
+        );
+
+      } catch (error) {}
+
+
+      /*
+      清掉内存缓存
+      */
+
+      delete categoryCache[
+        currentCategory
+      ];
+
+
+      /*
+      重新加载
+      */
+
+      await fetchCategory(
+        currentCategory
+      );
+
+    }
+  );
+}
+
+
+/*
+=========================================================
+START
+=========================================================
+*/
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    setupSearch();
+
+    setupRefreshButton();
+
+    init();
+
+  }
+);
+```
