@@ -1,24 +1,9 @@
-```javascript
 const API_URL =
   "https://script.google.com/macros/s/AKfycbxtFiRVCd9Y1MZ6l8-YlmmzRa97RZ6xppFLYoQgTEOBddtlx6wE6q9PnUaCdu3D94BR/exec";
 
 
-/*
-=========================================================
-SETTINGS
-=========================================================
-*/
-
 const PAGE_SIZE = 30;
 
-const CACHE_VERSION = "v2";
-
-
-/*
-=========================================================
-CONFIRMED CATEGORIES
-=========================================================
-*/
 
 const CATEGORIES = [
   "SUMMER Pick",
@@ -31,48 +16,44 @@ const CATEGORIES = [
 ];
 
 
-let currentCategory =
-  CATEGORIES[0];
+let currentCategory = CATEGORIES[0];
 
 let currentProducts = [];
 
-let visibleCount =
-  PAGE_SIZE;
-
-
-/*
-内存缓存
-
-当前页面打开期间，
-已经加载过的分类不会重复请求。
-*/
+let visibleCount = PAGE_SIZE;
 
 const categoryCache = {};
 
+let imageObserver = null;
 
-/*
-=========================================================
-INIT
-=========================================================
-*/
+
+/* ================================
+   页面初始化
+================================ */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  init
+);
+
 
 function init() {
 
   renderCategoryButtons();
 
+  setupSearch();
+
+  setupRefresh();
+
   showLoadingState();
 
-  loadCategory(
-    currentCategory
-  );
+  loadCategory(currentCategory);
 }
 
 
-/*
-=========================================================
-CATEGORY BUTTONS
-=========================================================
-*/
+/* ================================
+   分类按钮
+================================ */
 
 function renderCategoryButtons() {
 
@@ -85,118 +66,68 @@ function renderCategoryButtons() {
     return;
   }
 
-
   nav.innerHTML = "";
 
+  CATEGORIES.forEach(category => {
 
-  CATEGORIES.forEach(
-    category => {
+    const button =
+      document.createElement("button");
 
-      const btn =
-        document.createElement(
-          "button"
-        );
+    button.type = "button";
 
+    button.textContent = category;
 
-      btn.textContent =
-        category;
+    button.className =
+      category === currentCategory
+        ? "active"
+        : "";
 
+    button.addEventListener(
+      "click",
+      () => {
 
-      btn.className =
-        category ===
-        currentCategory
-          ? "active"
-          : "";
+        currentCategory = category;
 
+        document
+          .querySelectorAll(
+            "#categoryNav button"
+          )
+          .forEach(btn => {
+            btn.classList.remove("active");
+          });
 
-      btn.addEventListener(
-        "click",
-        () => {
+        button.classList.add("active");
 
-          if (
-            currentCategory ===
-            category
-          ) {
+        loadCategory(category);
+      }
+    );
 
-            return;
-          }
-
-
-          currentCategory =
-            category;
-
-
-          visibleCount =
-            PAGE_SIZE;
-
-
-          document
-            .querySelectorAll(
-              "#categoryNav button"
-            )
-            .forEach(
-              b =>
-                b.classList.remove(
-                  "active"
-                )
-            );
-
-
-          btn.classList.add(
-            "active"
-          );
-
-
-          loadCategory(
-            category
-          );
-
-        }
-      );
-
-
-      nav.appendChild(
-        btn
-      );
-
-    }
-  );
+    nav.appendChild(button);
+  });
 }
 
 
-/*
-=========================================================
-LOAD CATEGORY
-=========================================================
-*/
+/* ================================
+   加载分类
+================================ */
 
-async function loadCategory(
-  category
-) {
+async function loadCategory(category) {
+
+  visibleCount = PAGE_SIZE;
 
   currentProducts = [];
 
-  visibleCount =
-    PAGE_SIZE;
-
-
   showLoadingState();
 
-
   /*
-  -------------------------------------------------------
-  1. 当前页面内存缓存
-  -------------------------------------------------------
+    如果已经加载过，
+    直接使用缓存
   */
 
-  if (
-    categoryCache[category]
-  ) {
+  if (categoryCache[category]) {
 
     currentProducts =
-      categoryCache[
-        category
-      ];
+      categoryCache[category];
 
     renderProducts();
 
@@ -204,117 +135,21 @@ async function loadCategory(
   }
 
 
-  /*
-  -------------------------------------------------------
-  2. 浏览器 localStorage 缓存
-  -------------------------------------------------------
-  */
-
-  const storageKey =
-    getStorageKey(
-      category
-    );
-
-
-  try {
-
-    const saved =
-      localStorage.getItem(
-        storageKey
-      );
-
-
-    if (saved) {
-
-      const parsed =
-        JSON.parse(saved);
-
-
-      if (
-        Array.isArray(parsed) &&
-        parsed.length > 0
-      ) {
-
-        currentProducts =
-          parsed;
-
-
-        categoryCache[
-          category
-        ] = parsed;
-
-
-        renderProducts();
-
-
-        /*
-        -------------------------------------------------
-        后台更新数据
-
-        用户已经看到商品，
-        不需要一直等 API。
-        -------------------------------------------------
-        */
-
-        refreshCategoryInBackground(
-          category
-        );
-
-
-        return;
-      }
-    }
-
-  } catch (error) {
-
-    console.warn(
-      "Local cache error:",
-      error
-    );
-
-  }
-
-
-  /*
-  -------------------------------------------------------
-  3. 第一次加载 → 请求 Apps Script
-  -------------------------------------------------------
-  */
-
-  await fetchCategory(
-    category
-  );
-}
-
-
-/*
-=========================================================
-FETCH CATEGORY
-=========================================================
-*/
-
-async function fetchCategory(
-  category
-) {
-
   try {
 
     const url =
       API_URL +
       "?category=" +
-      encodeURIComponent(
-        category
-      );
+      encodeURIComponent(category) +
+      "&t=" +
+      Date.now();
 
 
     const response =
-      await fetch(
-        url,
-        {
-          method: "GET",
-          cache: "default"
-        }
-      );
+      await fetch(url, {
+        method: "GET",
+        cache: "no-store"
+      });
 
 
     if (!response.ok) {
@@ -331,121 +166,56 @@ async function fetchCategory(
 
 
     /*
-    -----------------------------------------------------
-    新 API 格式
-    -----------------------------------------------------
+      新版 Apps Script
     */
-
-    let products = [];
-
 
     if (
       data &&
-      Array.isArray(
-        data.products
-      )
+      Array.isArray(data.products)
     ) {
 
-      products =
+      currentProducts =
         data.products;
 
     }
 
-
     /*
-    -----------------------------------------------------
-    兼容旧 API
-
-    如果以后 API 返回：
-
-    {
-      "SNEAKERS": [...]
-    }
-
-    也仍然可以读取。
-    -----------------------------------------------------
-    */
-
-    else if (
-      data &&
-      Array.isArray(
-        data[category]
-      )
-    ) {
-
-      products =
-        data[category];
-
-    }
-
-
-    /*
-    如果 API 直接返回数组
+      兼容旧格式
     */
 
     else if (
       Array.isArray(data)
     ) {
 
-      products =
-        data;
+      currentProducts = data;
 
     }
 
-
-    /*
-    -----------------------------------------------------
-    重要：
-
-    不缓存 0 product。
-
-    防止 API 临时异常时，
-    把空数据保存下来。
-    -----------------------------------------------------
-    */
-
-    if (
-      !Array.isArray(products) ||
-      products.length === 0
+    else if (
+      data &&
+      Array.isArray(data[category])
     ) {
 
+      currentProducts =
+        data[category];
+
+    }
+
+    else {
+
       currentProducts = [];
-
-      showEmptyState();
-
-      return;
     }
 
 
     /*
-    -----------------------------------------------------
-    保存到内存缓存
-    -----------------------------------------------------
+      缓存
     */
 
-    currentProducts =
-      products;
-
-
-    categoryCache[
-      category
-    ] = products;
-
-
-    /*
-    -----------------------------------------------------
-    保存到浏览器缓存
-    -----------------------------------------------------
-    */
-
-    saveLocalCache(
-      category,
-      products
-    );
+    categoryCache[category] =
+      currentProducts;
 
 
     renderProducts();
-
 
   } catch (error) {
 
@@ -454,185 +224,14 @@ async function fetchCategory(
       error
     );
 
-
     showErrorState();
   }
 }
 
 
-/*
-=========================================================
-BACKGROUND REFRESH
-=========================================================
-*/
-
-async function refreshCategoryInBackground(
-  category
-) {
-
-  try {
-
-    const url =
-      API_URL +
-      "?category=" +
-      encodeURIComponent(
-        category
-      );
-
-
-    const response =
-      await fetch(
-        url,
-        {
-          method: "GET",
-          cache: "no-store"
-        }
-      );
-
-
-    if (!response.ok) {
-      return;
-    }
-
-
-    const data =
-      await response.json();
-
-
-    let products = [];
-
-
-    if (
-      data &&
-      Array.isArray(
-        data.products
-      )
-    ) {
-
-      products =
-        data.products;
-
-    }
-
-
-    else if (
-      data &&
-      Array.isArray(
-        data[category]
-      )
-    ) {
-
-      products =
-        data[category];
-
-    }
-
-
-    if (
-      products.length > 0
-    ) {
-
-      categoryCache[
-        category
-      ] = products;
-
-
-      saveLocalCache(
-        category,
-        products
-      );
-
-
-      /*
-      只有用户仍然停留在这个分类，
-      才更新当前页面。
-      */
-
-      if (
-        currentCategory ===
-        category
-      ) {
-
-        currentProducts =
-          products;
-
-        renderProducts();
-      }
-    }
-
-  } catch (error) {
-
-    console.warn(
-      "Background refresh failed:",
-      error
-    );
-
-  }
-}
-
-
-/*
-=========================================================
-LOCAL STORAGE KEY
-=========================================================
-*/
-
-function getStorageKey(
-  category
-) {
-
-  return (
-    "bestr3ps_products_" +
-    CACHE_VERSION +
-    "_" +
-    category
-  );
-}
-
-
-/*
-=========================================================
-SAVE LOCAL CACHE
-=========================================================
-*/
-
-function saveLocalCache(
-  category,
-  products
-) {
-
-  try {
-
-    localStorage.setItem(
-      getStorageKey(
-        category
-      ),
-      JSON.stringify(
-        products
-      )
-    );
-
-  } catch (error) {
-
-    /*
-    localStorage 空间不足时，
-    不影响网站正常运行。
-    */
-
-    console.warn(
-      "Could not save cache:",
-      error
-    );
-
-  }
-}
-
-
-/*
-=========================================================
-RENDER PRODUCTS
-=========================================================
-*/
+/* ================================
+   显示商品
+================================ */
 
 function renderProducts() {
 
@@ -640,7 +239,6 @@ function renderProducts() {
     document.getElementById(
       "productGrid"
     );
-
 
   if (!grid) {
     return;
@@ -656,8 +254,8 @@ function renderProducts() {
   const keyword =
     searchInput
       ? searchInput.value
-          .trim()
-          .toLowerCase()
+        .trim()
+        .toLowerCase()
       : "";
 
 
@@ -666,9 +264,7 @@ function renderProducts() {
 
 
   /*
-  -------------------------------------------------------
-  SEARCH
-  -------------------------------------------------------
+    搜索
   */
 
   if (keyword) {
@@ -681,29 +277,22 @@ function renderProducts() {
             String(
               product.name ||
               product.title ||
-              product.product ||
               ""
             ).toLowerCase();
-
 
           return name.includes(
             keyword
           );
-
         }
       );
   }
 
 
   /*
-  -------------------------------------------------------
-  EMPTY
-  -------------------------------------------------------
+    没有商品
   */
 
-  if (
-    !products.length
-  ) {
+  if (!products.length) {
 
     grid.innerHTML = "";
 
@@ -716,12 +305,6 @@ function renderProducts() {
   hideEmptyState();
 
 
-  /*
-  -------------------------------------------------------
-  ONLY RENDER FIRST 30
-  -------------------------------------------------------
-  */
-
   const visibleProducts =
     products.slice(
       0,
@@ -731,19 +314,12 @@ function renderProducts() {
 
   grid.innerHTML =
     visibleProducts
-      .map(
-        product =>
-          createProductCard(
-            product
-          )
-      )
+      .map(createProductCard)
       .join("");
 
 
   /*
-  -------------------------------------------------------
-  LOAD MORE
-  -------------------------------------------------------
+    Load More
   */
 
   if (
@@ -756,16 +332,15 @@ function renderProducts() {
         "button"
       );
 
+    loadMore.type = "button";
 
     loadMore.className =
       "load-more";
 
-
     loadMore.textContent =
       `LOAD MORE (${Math.min(
         PAGE_SIZE,
-        products.length -
-          visibleCount
+        products.length - visibleCount
       )})`;
 
 
@@ -777,7 +352,6 @@ function renderProducts() {
           PAGE_SIZE;
 
         renderProducts();
-
       }
     );
 
@@ -788,12 +362,6 @@ function renderProducts() {
   }
 
 
-  /*
-  -------------------------------------------------------
-  LAZY IMAGES
-  -------------------------------------------------------
-  */
-
   setupImageObserver();
 
 
@@ -803,21 +371,16 @@ function renderProducts() {
 }
 
 
-/*
-=========================================================
-CREATE PRODUCT CARD
-=========================================================
-*/
+/* ================================
+   商品卡片
+================================ */
 
-function createProductCard(
-  product
-) {
+function createProductCard(product) {
 
   const name =
     escapeHtml(
       product.name ||
       product.title ||
-      product.product ||
       "Product"
     );
 
@@ -825,9 +388,14 @@ function createProductCard(
   const price =
     escapeHtml(
       product.price ||
-      product.usd ||
       ""
     );
+
+
+  const image =
+    product.imageUrl ||
+    product.image ||
+    "";
 
 
   const url =
@@ -835,12 +403,6 @@ function createProductCard(
     product.url ||
     product.link ||
     "#";
-
-
-  const image =
-    product.imageUrl ||
-    product.image ||
-    "";
 
 
   return `
@@ -860,9 +422,7 @@ function createProductCard(
               ? `
                 <img
                   class="lazy-image"
-                  data-src="${escapeAttribute(
-                    image
-                  )}"
+                  data-src="${escapeAttribute(image)}"
                   alt="${name}"
                   loading="lazy"
                 >
@@ -883,7 +443,6 @@ function createProductCard(
             ${name}
           </div>
 
-
           ${
             price
               ? `
@@ -903,11 +462,9 @@ function createProductCard(
 }
 
 
-/*
-=========================================================
-IMAGE OBSERVER
-=========================================================
-*/
+/* ================================
+   图片懒加载
+================================ */
 
 function setupImageObserver() {
 
@@ -917,22 +474,12 @@ function setupImageObserver() {
     );
 
 
-  if (
-    !images.length
-  ) {
-    return;
-  }
-
-
   /*
-  不支持 IntersectionObserver
+    浏览器不支持时直接加载
   */
 
   if (
-    !(
-      "IntersectionObserver"
-      in window
-    )
+    !("IntersectionObserver" in window)
   ) {
 
     images.forEach(
@@ -943,79 +490,52 @@ function setupImageObserver() {
   }
 
 
-  /*
-  清除旧 observer
-  */
+  if (imageObserver) {
 
-  if (
-    window._imageObserver
-  ) {
-
-    window
-      ._imageObserver
-      .disconnect();
+    imageObserver.disconnect();
   }
 
 
-  window._imageObserver =
+  imageObserver =
     new IntersectionObserver(
       entries => {
 
-        entries.forEach(
-          entry => {
+        entries.forEach(entry => {
 
-            if (
-              entry.isIntersecting
-            ) {
+          if (
+            entry.isIntersecting
+          ) {
 
-              loadImage(
-                entry.target
-              );
+            loadImage(
+              entry.target
+            );
 
-
-              window
-                ._imageObserver
-                .unobserve(
-                  entry.target
-                );
-            }
-
+            imageObserver.unobserve(
+              entry.target
+            );
           }
-        );
+        });
 
       },
       {
-        rootMargin:
-          "400px"
+        rootMargin: "300px"
       }
     );
 
 
-  images.forEach(
-    image => {
+  images.forEach(image => {
 
-      window
-        ._imageObserver
-        .observe(
-          image
-        );
-
-    }
-  );
+    imageObserver.observe(
+      image
+    );
+  });
 }
 
-
-/*
-=========================================================
-LOAD IMAGE
-=========================================================
-*/
 
 function loadImage(img) {
 
   const src =
     img.dataset.src;
-
 
   if (!src) {
     return;
@@ -1023,7 +543,6 @@ function loadImage(img) {
 
 
   img.src = src;
-
 
   img.removeAttribute(
     "data-src"
@@ -1034,16 +553,13 @@ function loadImage(img) {
 
     img.style.display =
       "none";
-
   };
 }
 
 
-/*
-=========================================================
-SEARCH
-=========================================================
-*/
+/* ================================
+   搜索
+================================ */
 
 function setupSearch() {
 
@@ -1065,34 +581,61 @@ function setupSearch() {
     "input",
     () => {
 
-      clearTimeout(
-        timer
+      clearTimeout(timer);
+
+
+      timer = setTimeout(
+        () => {
+
+          visibleCount =
+            PAGE_SIZE;
+
+          renderProducts();
+
+        },
+        200
       );
-
-
-      timer =
-        setTimeout(
-          () => {
-
-            visibleCount =
-              PAGE_SIZE;
-
-            renderProducts();
-
-          },
-          200
-        );
-
     }
   );
 }
 
 
-/*
-=========================================================
-LOADING
-=========================================================
-*/
+/* ================================
+   刷新
+================================ */
+
+function setupRefresh() {
+
+  const button =
+    document.getElementById(
+      "refreshBtn"
+    );
+
+
+  if (!button) {
+    return;
+  }
+
+
+  button.addEventListener(
+    "click",
+    () => {
+
+      delete categoryCache[
+        currentCategory
+      ];
+
+      loadCategory(
+        currentCategory
+      );
+    }
+  );
+}
+
+
+/* ================================
+   Loading
+================================ */
 
 function showLoadingState() {
 
@@ -1123,11 +666,9 @@ function showLoadingState() {
 }
 
 
-/*
-=========================================================
-ERROR
-=========================================================
-*/
+/* ================================
+   Error
+================================ */
 
 function showErrorState() {
 
@@ -1157,11 +698,9 @@ function showErrorState() {
 }
 
 
-/*
-=========================================================
-EMPTY
-=========================================================
-*/
+/* ================================
+   Empty
+================================ */
 
 function showEmptyState() {
 
@@ -1184,12 +723,6 @@ function showEmptyState() {
 }
 
 
-/*
-=========================================================
-HIDE EMPTY
-=========================================================
-*/
-
 function hideEmptyState() {
 
   const empty =
@@ -1206,15 +739,11 @@ function hideEmptyState() {
 }
 
 
-/*
-=========================================================
-STATUS
-=========================================================
-*/
+/* ================================
+   状态
+================================ */
 
-function updateStatus(
-  text
-) {
+function updateStatus(text) {
 
   const status =
     document.getElementById(
@@ -1230,38 +759,29 @@ function updateStatus(
 }
 
 
-/*
-=========================================================
-ESCAPE HTML
-=========================================================
-*/
+/* ================================
+   HTML 安全处理
+================================ */
 
-function escapeHtml(
-  value
-) {
+function escapeHtml(value) {
 
   return String(value)
-
     .replace(
       /&/g,
       "&amp;"
     )
-
     .replace(
       /</g,
       "&lt;"
     )
-
     .replace(
       />/g,
       "&gt;"
     )
-
     .replace(
       /"/g,
       "&quot;"
     )
-
     .replace(
       /'/g,
       "&#039;"
@@ -1269,98 +789,7 @@ function escapeHtml(
 }
 
 
-/*
-=========================================================
-ESCAPE ATTRIBUTE
-=========================================================
-*/
+function escapeAttribute(value) {
 
-function escapeAttribute(
-  value
-) {
-
-  return escapeHtml(
-    value
-  );
+  return escapeHtml(value);
 }
-
-
-/*
-=========================================================
-REFRESH BUTTON
-=========================================================
-*/
-
-function setupRefreshButton() {
-
-  const button =
-    document.getElementById(
-      "refreshBtn"
-    );
-
-
-  if (!button) {
-    return;
-  }
-
-
-  button.addEventListener(
-    "click",
-    async () => {
-
-      /*
-      清掉当前分类的本地缓存
-      */
-
-      try {
-
-        localStorage.removeItem(
-          getStorageKey(
-            currentCategory
-          )
-        );
-
-      } catch (error) {}
-
-
-      /*
-      清掉内存缓存
-      */
-
-      delete categoryCache[
-        currentCategory
-      ];
-
-
-      /*
-      重新加载
-      */
-
-      await fetchCategory(
-        currentCategory
-      );
-
-    }
-  );
-}
-
-
-/*
-=========================================================
-START
-=========================================================
-*/
-
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
-
-    setupSearch();
-
-    setupRefreshButton();
-
-    init();
-
-  }
-);
-```
