@@ -1,0 +1,114 @@
+[
+  {
+    "id": "req_1791001140758_b41228",
+    "productName": "Production Verification Hoodie (test_verify_1791001140)",
+    "description": "Submitted from independent client device to test end-to-end flow",
+    "referenceImages": [],
+    "contactType": "whatsapp",
+    "contactHandle": "+1 234 567 8900",
+    "targetBudget": "$85",
+    "status": "pending",
+    "createdAt": "2026-10-03T04:19:00.758Z"
+  },
+  {
+    "id": "req_1790953893727_1f5f51",
+    "productName": "Custom Sourcing Request (User Test)",
+    "description": "Submitted from second device to test sync",
+    "referenceImages": [],
+    "contactType": "discord",
+    "contactHandle": "asdasd",
+    "targetBudget": "$100",
+    "status": "pending",
+    "createdAt": "2026-10-02T15:11:33.727Z"
+  },
+  {
+    "id": "req_1790952912189_aba26c",
+    "productName": "Nike Kobe 6 Protro Grinch",
+    "description": "Size US 10.5, GK / H12 batch",
+    "referenceImages": [],
+    "contactType": "whatsapp",
+    "contactHandle": "+86 13800138000",
+    "targetBudget": "$110",
+    "status": "pending",
+    "createdAt": "2026-10-02T14:55:12.189Z"
+  },
+  {
+    "id": "req_1790952859752_966be8",
+    "productName": "Test Air Jordan 4",
+    "description": "",
+    "referenceImages": [],
+    "contactType": "discord",
+    "contactHandle": "user#1234",
+    "targetBudget": "",
+    "status": "pending",
+    "createdAt": "2026-10-02T14:54:19.752Z"
+  },
+  {
+    "id": "req_1790952086029_bf116d",
+    "productName": "Stussy 8-Ball Mohair Cardigan (Live Test)",
+    "description": "Size XL, Black, 100% Mohair wool blend",
+    "referenceImages": [
+      "/uploads/img_1790952086028_0b92e80d.png"
+    ],
+    "contactType": "discord",
+    "contactHandle": "fashionlover#5521",
+    "targetBudget": "$95",
+    "status": "pending",
+    "createdAt": "2026-10-02T14:41:26.029Z"
+  },
+  {
+    "id": "req_1790948814263_lry9w",
+    "productName": "Test from Curl Device",
+    "description": "",
+    "referenceImages": [],
+    "contactType": "discord",
+    "contactHandle": "curl_tester#0001",
+    "targetBudget": "",
+    "status": "pending",
+    "createdAt": "2026-10-02T13:46:54.263Z"
+  },
+  {
+    "id": "req_1790946417981_8fn7f",
+    "productName": "Supreme x The North Face Nuptse Jacket",
+    "description": "Size L, Paper Print, Black/White",
+    "referenceImages": [],
+    "contactType": "whatsapp",
+    "contactHandle": "+19876543210",
+    "targetBudget": "$150",
+    "status": "pending",
+    "createdAt": "2026-10-02T13:06:57.981Z"
+  },
+  {
+    "id": "req_1790919030453_wq2ow",
+    "productName": "External User Test Item",
+    "description": "Submitted from second device",
+    "referenceImages": [],
+    "contactType": "discord",
+    "contactHandle": "test#9999",
+    "targetBudget": "",
+    "status": "pending",
+    "createdAt": "2026-10-02T05:30:30.453Z"
+  },
+  {
+    "id": "req_1790918401555_xso2p",
+    "productName": "Test Item",
+    "description": "",
+    "referenceImages": [],
+    "contactType": "discord",
+    "contactHandle": "TestHandle",
+    "targetBudget": "",
+    "status": "pending",
+    "createdAt": "2026-10-02T05:20:01.555Z"
+  },
+  {
+    "id": "req_1790917439193_zht8d",
+    "productName": "Nike Air Jordan 4 Retro White Cement (Test Request)",
+    "description": "Size 43, GX Batch",
+    "referenceImages": [],
+    "contactType": "whatsapp",
+    "contactHandle": "+8613800000000",
+    "targetBudget": "$120",
+    "status": "pending",
+    "createdAt": "2026-10-02T05:03:59.193Z"
+  }
+]
