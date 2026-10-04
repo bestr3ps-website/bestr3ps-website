@@ -1,0 +1,57 @@
+{
+  "pageViews": 7,
+  "daily": {
+    "2026-10-02": {
+      "date": "2026-10-02",
+      "pageViews": 5,
+      "uniqueVisitors": 3,
+      "productClicks": 2,
+      "searches": 0,
+      "topAgents": {
+        "mulebuy": 2
+      },
+      "visitors": {
+        "test_comp_123": true,
+        "v_gx1v4ufkmuovdqwh": true,
+        "test_visitor_uuid_99": true
+      }
+    },
+    "2026-10-04": {
+      "date": "2026-10-04",
+      "pageViews": 2,
+      "uniqueVisitors": 1,
+      "productClicks": 0,
+      "searches": 0,
+      "topAgents": {},
+      "visitors": {
+        "v_gx1v4ufkmuovdqwh": true
+      }
+    }
+  },
+  "products": {
+    "sp_hoodie_01": {
+      "productId": "sp_hoodie_01",
+      "name": "Test Hoodie Item",
+      "brand": "Unbranded",
+      "category": "GENERAL",
+      "views": 1,
+      "clicks": 2,
+      "shares": 0,
+      "lastViewedAt": "2026-10-02T14:41:26.037Z",
+      "agentClicks": {
+        "mulebuy": 2
+      }
+    }
+  },
+  "agents": {
+    "mulebuy": {
+      "agentId": "mulebuy",
+      "name": "MULEBUY",
+      "views": 1,
+      "clicks": 2,
+      "activeSeconds": 0,
+      "lastActiveAt": "2026-10-02T14:42:18.732Z"
+    }
+  },
+  "visitors": {}
+}
